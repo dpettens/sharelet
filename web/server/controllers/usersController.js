@@ -33,33 +33,33 @@ exports.authenticate = function(req, res, next) {
         'password'
     ], (error, user) => {
         if (error)
-            next({
+            return next({
                 status: 500,
                 message: 'Authentication failed. Error with the database.',
                 log: error
             });
 
         if (!user)
-            next({
+            return next({
                 status: 404,
                 message: 'Authentication failed. User not found.'
             });
 
         if (!user.validPassword(req.body.password))
-            next({
+            return next({
                 status: 400,
                 message: 'Authentication failed. Wrong password.'
             });
 
         // Create the JWT token and send it
         jwt.sign(user.plain(), config.app.secret, {}, (error, token) => {
-            if(error) 
-                next({
+            if(error)
+                return next({
                     status: 500,
                     message: 'Authentication failed. Error with the jwt creation.',
                     log: error
                 });
-            
+
             return res.status(200).json({
                 token: token
             });
