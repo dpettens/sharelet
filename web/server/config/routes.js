@@ -7,6 +7,7 @@
 
 const express = require('express');
 const usersController = require('../controllers/usersController');
+const outletsController = require('../controllers/outletsController');
 
 /**
  * Module variables.
@@ -25,10 +26,23 @@ router.route('/authenticate')
 router.route('/users')
     .post(usersController.new);
 
+router.route('/users/outlets')
+	.get(usersController.getOutlets)
+	.post(usersController.addOutlet)
+
+router.route('/outlets/:id')
+//	.put(usersController.updateOutlet)
+	.delete(usersController.deleteOutlet);
+
+router.route('/outlets/:id/data/:date')
+ 	.get(outletsController.getData)
+
 // router.route('/users/:id')
-//     .get(userController.get)
-//     .put(userController.update)
-//     .delete(userController.delete);
+//    .get(userController.get)
+//    .put(userController.update)
+//    .delete(userController.delete);
+
+
 
 /**
  * Module exports.

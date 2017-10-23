@@ -15,11 +15,8 @@ const wss = new WebSocket.Server({ port: 3000 });
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(message){
     var data = JSON.parse(message);
-    console.log("Connection from "+data.outlet_id);
-    console.log(wss.clients);
     var md5hash = crypto.createHash('md5').update(data.outlet_id).digest('base64');
     var hash = crypto.createHash('sha256').update(SALT+md5hash+SALT).digest('base64');
-    console.log("Hash Calculated = "+hash);
     var date = new Date(data.timestamp*1000);
     var date_str = date.getDate()+'-'+date.getMonth()+'-'+date.getFullYear();
     if(hash == data.pwd){

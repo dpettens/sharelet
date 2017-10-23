@@ -51,8 +51,7 @@ class UserCredentials {
     plain(){
         return {
             userid : this.userid.toString(), 
-            email : this.email, 
-            password : this.password
+            email : this.email
         };
     }
 

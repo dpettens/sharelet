@@ -22,6 +22,36 @@ class User {
         this.outlets = user.outlets;
     }
 
+    addOutlet(outlet_id, next){
+        cassandra.getConnection((error, client) => {
+            if(error)
+                return next(error);
+
+            const ADD_OUTLET_CQL = "UPDATE users SET outlets = outlets + {'"+outlet_id+"'} WHERE userid = " + this.userid;
+            client.execute(ADD_OUTLET_CQL, (error, results) => {
+                if(error)
+                    return next(error);
+
+                next(null, true);
+            });
+        });
+    }
+
+    deleteOutlet(outlet_id, next){
+        cassandra.getConnection((error, client) => {
+            if (error)
+                return next(error);
+
+            const DELETE_OUTLET = "UPDATE users SET outlets = outlets - '"+outlet_id+"' WHERE userid = '" + this.userid + "'";
+            client.execute(INSERT_DATA_CQL, (error, results) => {
+                if (error)
+                    return next(error);
+
+                next(null);
+            });
+        });
+    }
+
     save(next) {
         this.created_date = Date.now();
 
@@ -54,18 +84,18 @@ class User {
             if (error)
                 return next(error);
 
-            const SELECT_DATA_CQL = "SELECT " + fields.toString() + " FROM users WHERE userid = " + id + "'";
+            const SELECT_DATA_CQL = "SELECT " + fields.toString() + " FROM users WHERE userid = " + id;
             client.execute(SELECT_DATA_CQL, (error, results) => {
                 if (error)
                     return next(error);
 
                 if (results.rowLength === 0)
                     return next(null, false);
-                
+
                 // Fix bad cassandra return for uuid
                 if(results.rows[0].userid)
                     results.rows[0].userid = results.rows[0].userid.toString();
-                    
+
                 next(null, new User(results.rows[0]));
             });
         });

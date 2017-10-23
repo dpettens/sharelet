@@ -6,6 +6,7 @@
  */
 
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const config = require('../config/env');
 const UserCredentials = require('../models/userCredentials');
 const User = require('../models/user');
@@ -128,5 +129,111 @@ exports.new = function (req, res, next) {
                 return res.status(201).end();
             });
         });
+    });
+}
+
+/**
+ * Add an outlet to an account
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ *
+ * Body :
+ * {
+ *   "outlet_id" : string,
+ *   "pwd" : string
+ * }
+ *
+ */
+
+exports.addOutlet = function(req, res, next){
+    console.log('req.body.outlet_id = '+req.body.outlet_id);
+    let md5hash = crypto.createHash('md5').update(req.body.outlet_id).digest('base64');
+    console.log(md5hash);
+    let hash = crypto.createHash('sha256').update(config.salt+md5hash+config.salt).digest('base64');
+    console.log(hash);
+    let pwd = hash.substring(0, 5);
+    console.log(pwd);
+    if(req.body.pwd == pwd){
+        User.findByUserID(req.key, [], (err, user) => {
+            if (err)
+                return next({
+                    status: 500,
+                    message: 'Save failed. Error with the database.',
+                    log: err
+                });
+            user.addOutlet(req.body.outlet_id, (error, done) => {
+                if(error)
+                    return next({
+                        status: 500,
+                        message: 'Save failed. Error with the database.',
+                        log: error
+                    });
+
+                return res.status(201).end();
+            });
+        });
+    }else{
+        return next({
+            status: 401,
+            message: 'Bad outlet password',
+            log: null
+        });
+    }
+}
+
+/**
+ * Remove an outlet from an account
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.deleteOutlet = function(req, res, next){
+    User.findByUserID(req.key, [], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Save failed. Error with the database.',
+                log: err
+            });
+        user.deleteOutlet(req.params.id, function(error, done){
+            if(error)
+                return next({
+                    status: 500,
+                    message: 'Save failed. Error with the database.',
+                    log: error
+                });
+
+            res.status(200).end();
+        });
+    });
+}
+
+exports.getOutlets = function(req, res, next){
+    User.findByUserID(req.key, ['outlets'], (err, outlets) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Save failed. Error with the database.',
+                log: err
+            });
+        return res.status(200).json(outlets);
     });
 }

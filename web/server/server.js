@@ -82,6 +82,7 @@ app.use(function(req, res, next) {
  */
 
 app.use(function(err, req, res, next) {
+    if(err.status <= 100 && err.stats > 600) err.status = 500;
     if(app.get('env') === 'production')
         delete err.log;
 

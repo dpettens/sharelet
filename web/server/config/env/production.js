@@ -1,7 +1,8 @@
 'use strict';
 
 exports.app = {
-    secret : process.env.SECRET
+    secret : process.env.SECRET,
+    salt : "auth-sharelet",
 };
 
 exports.database = {
@@ -12,5 +13,5 @@ exports.database = {
 };
 
 exports.server = {
-    port: '3000'
+    port: '80'
 };
