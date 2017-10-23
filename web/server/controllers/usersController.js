@@ -10,6 +10,7 @@ const crypto = require('crypto');
 const config = require('../config/env');
 const UserCredentials = require('../models/userCredentials');
 const User = require('../models/user');
+const Outlet = require('../models/outlet');
 
 /**
  * Try to authenticate the user from the email and password passed in the body
@@ -226,13 +227,58 @@ exports.deleteOutlet = function(req, res, next){
 }
 
 exports.getOutlets = function(req, res, next){
-    User.findByUserID(req.key, ['outlets'], (err, outlets) => {
+    User.findByUserID(req.key, ['outlets'], (err, user) => {
         if (err)
             return next({
                 status: 500,
-                message: 'Save failed. Error with the database.',
+                message: 'Fetch failed. Error with the database.',
                 log: err
             });
-        return res.status(200).json(outlets);
+        var doneCnt = 0;
+        var result = [];
+        var outlets = user.outlets.forEach((outlet) => {
+            var model = new Outlet({outlet_id : outlet});
+            model.getAlias((error, alias) => {
+                if (error)
+                    return next({
+                        status: 500,
+                        message: 'Fetch failed. Error with the database.',
+                        log: error
+                    });
+                doneCnt++;
+                result.push({id : outlet, alias : alias.alias});
+                if(doneCnt == user.outlets.length)
+                    return res.status(200).json(result);
+            });
+        });
+    });
+}
+
+exports.updateOutlet = function(req, res, next){
+    User.findByUserID(req.key, ['outlets'], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+        if(user.outlets.indexOf(req.params.id) > -1){
+            var model = new Outlet({outlet_id : req.params.id});
+            model.setAlias(req.body.alias, (error, result) => {
+                if (error)
+                    return next({
+                        status: 500,
+                        message: 'Save failed. Error with the database.',
+                        log: error
+                    });
+                return res.status(201).end();
+            });
+        }else{
+            return next({
+                status: 500,
+                message: 'Unauthorized. User doesn\'t own this outlet',
+                log: err
+            });
+        }
     });
 }

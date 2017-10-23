@@ -30,8 +30,8 @@ router.route('/users/outlets')
 	.get(usersController.getOutlets)
 	.post(usersController.addOutlet)
 
-router.route('/outlets/:id')
-//	.put(usersController.updateOutlet)
+router.route('/users/outlets/:id')
+	.put(usersController.updateOutlet)
 	.delete(usersController.deleteOutlet);
 
 router.route('/outlets/:id/data/:date')
