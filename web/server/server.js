@@ -5,11 +5,12 @@
  * @private
  */
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const morgan = require('morgan');
-const routes = require('./config/routes');
-const auth = require('./libs/auth');
+const bodyParser  = require('body-parser');
+const express     = require('express');
+const morgan      = require('morgan');
+
+const apiRoutes     = require('./config/routes/api');
+const auth          = require('./libs/auth');
 const serverOptions = require('./config/env').server;
 
 /**
@@ -19,35 +20,27 @@ const serverOptions = require('./config/env').server;
 
 let app = express();
 
-/**
- * Module exports.
- * @public
+/*
+ * Use bodyParser middelware to get the data from a POST/PUT.
  */
 
-module.exports = app;
-
-/**
- * Use bodyParser middelware to get the data from a POST/PUT
- */
-
-app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-/**
- * Use morgan logger to log on the console
+/*
+ * Use morgan logger to log on the console.
  */
 
 app.use(morgan('dev'));
 
-/** 
- * Set the port
  */
 
-app.set('port', serverOptions.port);
 
-/**
- * Auth Middelware to protect sensitive routes with jwt and/or id user
- * Some routes are not protected via the unless middelware
+ */
+
+
+/*
+ * Auth Middelware to protect sensitive routes with jwt and/or id user.
+ * Some routes are not protected via the unless middelware.
  */
 
 app.use('/api/v1', auth.unless({
@@ -60,37 +53,24 @@ app.use('/api/v1', auth.unless({
     }]
 }));
 
-/**
- * Bind all routes to the app
+/*
+ * Bind all api routes to the app.
  */
 
-app.use('/api/v1', routes);
+app.use('/api/v1', apiRoutes);
 
-/**
- * Catch 404 and forward to error handler
  */
 
-app.use(function(req, res, next) {
-    next({
-        status: 404,
-        message: 'Api URL non trouvée :('
-    });
 });
 
-/**
- * Error Handler Function
+/*
+ * Set the port.
  */
 
-app.use(function(err, req, res, next) {
-    if(err.status <= 100 && err.stats > 600) err.status = 500;
-    if(app.get('env') === 'production')
-        delete err.log;
+app.set('port', serverOptions.port);
 
-    return res.status(err.status).json(err);
-});
-
-/**
- * Start the server
+/*
+ * Start the server.
  */
 
 app.listen(app.get('port'), () => {

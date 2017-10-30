@@ -5,12 +5,13 @@
  * @private
  */
 
-const jwt = require('jsonwebtoken');
+const jwt    = require('jsonwebtoken');
 const crypto = require('crypto');
-const config = require('../config/env');
+
+const config          = require('../config/env');
+const Outlet          = require('../models/outlet');
+const User            = require('../models/user');
 const UserCredentials = require('../models/userCredentials');
-const User = require('../models/user');
-const Outlet = require('../models/outlet');
 
 /**
  * Try to authenticate the user from the email and password passed in the body
@@ -28,7 +29,7 @@ const Outlet = require('../models/outlet');
  * @public
  */
 
-exports.authenticate = function(req, res, next) {
+exports.authenticate = (req, res, next) => {
     UserCredentials.findByEmail(req.body.email, [
         'userid',
         'email',
@@ -84,7 +85,7 @@ exports.authenticate = function(req, res, next) {
  * @public
  */
 
-exports.new = function (req, res, next) {
+exports.addUser = (req, res, next) => {
     UserCredentials.findByEmail(req.body.email, ['email'], (error, result) => {
         if (error)
             return next({
@@ -132,6 +133,55 @@ exports.new = function (req, res, next) {
         });
     });
 }
+
+/**
+ * Get an outlet to an account
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.getOutlets = (req, res, next) => {
+    User.findByUserID(req.key, ['outlets'], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+
+        let doneCnt = 0;
+        let result = [];
+
+        user.outlets.forEach((outlet) => {
+            let model = new Outlet({outlet_id: outlet});
+
+            model.getAlias((error, alias) => {
+                if (error)
+                    return next({
+                        status: 500,
+                        message: 'Fetch failed. Error with the database.',
+                        log: error
+                    });
+
+                doneCnt++;
+                result.push({id: outlet, alias: alias.alias});
+
+                if(doneCnt == user.outlets.length)
+                    return res.status(200).json(result);
+            });
+        });
+    });
+}
+
 /**
  * Add an outlet to an account
  *
@@ -154,15 +204,13 @@ exports.new = function (req, res, next) {
  *
  */
 
-exports.addOutlet = function(req, res, next){
-    console.log('req.body.outlet_id = '+req.body.outlet_id);
-    let md5hash = crypto.createHash('md5').update(req.body.outlet_id).digest('base64');
-    console.log(md5hash);
-    let hash = crypto.createHash('sha256').update(config.salt+md5hash+config.salt).digest('base64');
-    console.log(hash);
-    let pwd = hash.substring(0, 5);
-    console.log(pwd);
-    if(req.body.pwd == pwd){
+exports.addOutlet = (req, res, next) => {
+    const md5hash = crypto.createHash('md5').update(req.body.outlet_id).digest('base64');
+    const hash = crypto.createHash('sha256').update(config.salt + md5hash + config.salt).digest('base64');
+    const pwd = hash.substring(0, 5);
+
+    if(req.body.pwd == pwd)
+    {
         User.findByUserID(req.key, [], (err, user) => {
             if (err)
                 return next({
@@ -170,6 +218,7 @@ exports.addOutlet = function(req, res, next){
                     message: 'Save failed. Error with the database.',
                     log: err
                 });
+
             user.addOutlet(req.body.outlet_id, (error, done) => {
                 if(error)
                     return next({
@@ -181,13 +230,64 @@ exports.addOutlet = function(req, res, next){
                 return res.status(201).end();
             });
         });
-    }else{
+    }
+    else
+    {
         return next({
             status: 401,
-            message: 'Bad outlet password',
-            log: null
+            message: 'Bad outlet password'
         });
     }
+}
+
+/**
+ * Update an outlet from an account
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.updateOutlet = (req, res, next) => {
+    User.findByUserID(req.key, ['outlets'], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+
+        if(user.outlets.indexOf(req.params.id) > -1)
+        {
+            let outlet = new Outlet({outlet_id: req.params.id});
+            
+            outlet.setAlias(req.body.alias, (error, result) => {
+                if (error)
+                    return next({
+                        status: 500,
+                        message: 'Save failed. Error with the database.',
+                        log: error
+                    });
+
+                return res.status(201).end();
+            });
+        }
+        else
+        {
+            return next({
+                status: 500,
+                message: 'Unauthorized. User doesn\'t own this outlet',
+                log: err
+            });
+        }
+    });
 }
 
 /**
@@ -205,7 +305,7 @@ exports.addOutlet = function(req, res, next){
  * @public
  */
 
-exports.deleteOutlet = function(req, res, next){
+exports.deleteOutlet = (req, res, next) => {
     User.findByUserID(req.key, [], (err, user) => {
         if (err)
             return next({
@@ -213,7 +313,8 @@ exports.deleteOutlet = function(req, res, next){
                 message: 'Save failed. Error with the database.',
                 log: err
             });
-        user.deleteOutlet(req.params.id, function(error, done){
+
+        user.deleteOutlet(req.params.id, (error, done) => {
             if(error)
                 return next({
                     status: 500,
@@ -223,62 +324,5 @@ exports.deleteOutlet = function(req, res, next){
 
             res.status(200).end();
         });
-    });
-}
-
-exports.getOutlets = function(req, res, next){
-    User.findByUserID(req.key, ['outlets'], (err, user) => {
-        if (err)
-            return next({
-                status: 500,
-                message: 'Fetch failed. Error with the database.',
-                log: err
-            });
-        var doneCnt = 0;
-        var result = [];
-        var outlets = user.outlets.forEach((outlet) => {
-            var model = new Outlet({outlet_id : outlet});
-            model.getAlias((error, alias) => {
-                if (error)
-                    return next({
-                        status: 500,
-                        message: 'Fetch failed. Error with the database.',
-                        log: error
-                    });
-                doneCnt++;
-                result.push({id : outlet, alias : alias.alias});
-                if(doneCnt == user.outlets.length)
-                    return res.status(200).json(result);
-            });
-        });
-    });
-}
-
-exports.updateOutlet = function(req, res, next){
-    User.findByUserID(req.key, ['outlets'], (err, user) => {
-        if (err)
-            return next({
-                status: 500,
-                message: 'Fetch failed. Error with the database.',
-                log: err
-            });
-        if(user.outlets.indexOf(req.params.id) > -1){
-            var model = new Outlet({outlet_id : req.params.id});
-            model.setAlias(req.body.alias, (error, result) => {
-                if (error)
-                    return next({
-                        status: 500,
-                        message: 'Save failed. Error with the database.',
-                        log: error
-                    });
-                return res.status(201).end();
-            });
-        }else{
-            return next({
-                status: 500,
-                message: 'Unauthorized. User doesn\'t own this outlet',
-                log: err
-            });
-        }
     });
 }

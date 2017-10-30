@@ -14,12 +14,29 @@ const cassandra = require('../libs/cassandra');
 
 class User {
     constructor(user) {
-        this.userid = user.userid;
-        this.firstname = user.firstname;
-        this.lastname = user.lastname;
-        this.email = user.email;
+        this.userid       = user.userid;
+        this.firstname    = user.firstname;
+        this.lastname     = user.lastname;
+        this.email        = user.email;
         this.created_date = user.created_date;
-        this.outlets = user.outlets;
+        this.outlets      = user.outlets;
+    }
+
+    save(next) {
+        this.created_date = Date.now();
+
+        cassandra.getConnection((error, client) => {
+            if (error)
+                return next(error);
+
+            const ADD_USER_CQL = "INSERT INTO users (userid, firstname, lastname, email, created_date, outlets) VALUES (?, ?, ?, ?, ?, {})";
+            client.execute(ADD_USER_CQL, this, { prepare: true }, (error, results) => {
+                if (error)
+                    return next(error);
+
+                next(null);
+            });
+        });
     }
 
     addOutlet(outlet_id, next){
@@ -27,7 +44,7 @@ class User {
             if(error)
                 return next(error);
 
-            const ADD_OUTLET_CQL = "UPDATE users SET outlets = outlets + {'"+outlet_id+"'} WHERE userid = " + this.userid;
+            const ADD_OUTLET_CQL = "UPDATE users SET outlets = outlets + {'" + outlet_id + "'} WHERE userid = " + this.userid;
             client.execute(ADD_OUTLET_CQL, (error, results) => {
                 if(error)
                     return next(error);
@@ -42,25 +59,8 @@ class User {
             if (error)
                 return next(error);
 
-            const DELETE_OUTLET = "UPDATE users SET outlets = outlets - '"+outlet_id+"' WHERE userid = '" + this.userid + "'";
-            client.execute(INSERT_DATA_CQL, (error, results) => {
-                if (error)
-                    return next(error);
-
-                next(null);
-            });
-        });
-    }
-
-    save(next) {
-        this.created_date = Date.now();
-
-        cassandra.getConnection((error, client) => {
-            if (error)
-                return next(error);
-
-            const INSERT_DATA_CQL = "INSERT INTO users (userid, firstname, lastname, email, created_date, outlets) VALUES (?, ?, ?, ?, ?, {})";
-            client.execute(INSERT_DATA_CQL, this, { prepare: true }, (error, results) => {
+            const DELETE_OUTLET_CQL = "UPDATE users SET outlets = outlets - '" + outlet_id + "' WHERE userid = '" + this.userid + "'";
+            client.execute(DELETE_OUTLET_CQL, (error, results) => {
                 if (error)
                     return next(error);
 
@@ -84,8 +84,8 @@ class User {
             if (error)
                 return next(error);
 
-            const SELECT_DATA_CQL = "SELECT " + fields.toString() + " FROM users WHERE userid = " + id;
-            client.execute(SELECT_DATA_CQL, (error, results) => {
+            const FIND_USER_CQL = "SELECT " + fields.toString() + " FROM users WHERE userid = " + id;
+            client.execute(FIND_USER_CQL, (error, results) => {
                 if (error)
                     return next(error);
 

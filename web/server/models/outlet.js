@@ -15,7 +15,7 @@ const cassandra = require('../libs/cassandra');
 class Outlet {
     constructor(outlet) {
         this.outlet_id = outlet.outlet_id;
-        this.alias = null;
+        this.alias     = null;
     }
 
     getData(day, next) {
@@ -23,9 +23,8 @@ class Outlet {
             if(error)
                 return next(error);
 
-            const GET_DATA = "SELECT sensor_type, event_time, sensor_value FROM sharelet.consumption_by_day WHERE outlet_id = '"+this.outlet_id+"' AND date = '"+day+"'";
-            console.log(GET_DATA);
-            client.execute(GET_DATA, (error, results) => {
+            const GET_DATA_CQL = "SELECT sensor_type, event_time, sensor_value FROM sharelet.consumption_by_day WHERE outlet_id = '" + this.outlet_id + "' AND date = '" + day + "'";
+            client.execute(GET_DATA_CQL, (error, results) => {
                 if(error)
                     return next(error);
 
@@ -39,9 +38,8 @@ class Outlet {
             if(error)
                 return next(error);
 
-            const GET_DATA = "SELECT alias FROM sharelet.outlet_alias WHERE outlet_id = '"+this.outlet_id+"'";
-            console.log(GET_DATA);
-            client.execute(GET_DATA, (error, results) => {
+            const GET_ALIAS_CQL = "SELECT alias FROM sharelet.outlet_alias WHERE outlet_id = '" + this.outlet_id + "'";
+            client.execute(GET_ALIAS_CQL, (error, results) => {
                 if(error)
                     return next(error);
 
@@ -58,8 +56,8 @@ class Outlet {
             if(error)
                 return next(error);
 
-            const UPDATE_ALIAS = "UPDATE sharelet.outlet_alias SET alias = '"+alias+"' WHERE outlet_id = '"+this.outlet_id+"'";
-            client.execute(UPDATE_ALIAS, (error, results) => {
+            const UPDATE_ALIAS_CQL = "UPDATE sharelet.outlet_alias SET alias = '" + alias + "' WHERE outlet_id = '" + this.outlet_id + "'";
+            client.execute(UPDATE_ALIAS_CQL, (error, results) => {
                 if(error)
                     return next(error);
 

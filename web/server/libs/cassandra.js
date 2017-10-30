@@ -6,22 +6,21 @@
  */
 
 const cassandra = require('cassandra-driver');
-const config = require('../config/env');
-const PlainTextAuthProvider = cassandra.auth.PlainTextAuthProvider;
+const config    = require('../config/env');
 
 /**
  * Module variables.
  * @private
  */
 
-const cassAuth = new PlainTextAuthProvider(
+const cassAuth = new cassandra.auth.PlainTextAuthProvider(
     config.database.username,
     config.database.password
 );
 
-const client = new cassandra.Client({ 
+const client   = new cassandra.Client({ 
     contactPoints: config.database.contactPoints, 
-    keyspace: config.database.keyspace, 
+    keyspace:      config.database.keyspace, 
     authProvider : cassAuth 
 });
 

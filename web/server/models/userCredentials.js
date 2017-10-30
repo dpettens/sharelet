@@ -6,8 +6,9 @@
  */
 
 const bcrypt = require('bcrypt-nodejs');
+const Uuid   = require('cassandra-driver').types.Uuid;
+
 const cassandra = require('../libs/cassandra');
-const Uuid = require('cassandra-driver').types.Uuid;
 
 /**
  * UserCredentials Model
@@ -16,8 +17,8 @@ const Uuid = require('cassandra-driver').types.Uuid;
 
 class UserCredentials {
     constructor(userCredentials) {
-        this.userid = userCredentials.userid;
-        this.email = userCredentials.email;
+        this.userid   = userCredentials.userid;
+        this.email    = userCredentials.email;
         this.password = userCredentials.password;
     }
 
@@ -28,9 +29,9 @@ class UserCredentials {
         cassandra.getConnection((error, client) => {
             if (error)
                 return next(error);
-
-            const INSERT_DATA_CQL = "INSERT INTO usercredentials (userid, email, password) VALUES (?, ?, ?)";
-            client.execute(INSERT_DATA_CQL, this, { prepare: true }, (error) => {
+            
+            const SAVE_USERCREDENTIALS_CQL = "INSERT INTO usercredentials (userid, email, password) VALUES (?, ?, ?)";
+            client.execute(SAVE_USERCREDENTIALS_CQL, this, { prepare: true }, (error) => {
                 if (error)
                     return next(error);
 
@@ -67,8 +68,8 @@ class UserCredentials {
             if (error)
                 return next(error);
             
-            const SELECT_DATA_CQL = "SELECT " + fields.toString() + " FROM usercredentials WHERE email = '" + email + "'";
-            client.execute(SELECT_DATA_CQL, (error, results) => {
+            const FIND_USERCREDENTIALS_CQL = "SELECT " + fields.toString() + " FROM usercredentials WHERE email = '" + email + "'";
+            client.execute(FIND_USERCREDENTIALS_CQL, (error, results) => {
                 if (error)
                     return next(error);
     

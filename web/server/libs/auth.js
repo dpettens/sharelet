@@ -5,13 +5,25 @@
  * @private
  */
 
-const jwt = require('jsonwebtoken');
+const jwt    = require('jsonwebtoken');
 const unless = require('express-unless');
-const config = require('../config/env');
+
+const config          = require('../config/env');
 const UserCredentials = require('../models/userCredentials');
 
 /**
  * Auth Middelware to protect sensitive routes with jwt and/or id user
+ * 
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
  */
 
 function auth(req, res, next) {
@@ -46,7 +58,7 @@ function auth(req, res, next) {
     });
 }
 
-/**
+/*
  * Add unless function to the Middelware for bypass the auth for some routes
  */
 
