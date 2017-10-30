@@ -67,8 +67,12 @@ app.use('/api/v1', auth.unless({
 
 app.use('/api/v1', apiRoutes);
 
+/*
+ * Bind all other routes to the react client app.
  */
 
+app.get('/*', (req, res, next) => {
+    return res.sendFile(path.resolve('../client/build/index.html'));
 });
 
 /*
