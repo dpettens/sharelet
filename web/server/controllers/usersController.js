@@ -55,7 +55,7 @@ exports.authenticate = (req, res, next) => {
             });
 
         // Create the JWT token and send it
-        jwt.sign(user.plain(), config.app.secret, { expiresIn: '1 day' }, (error, token) => {
+        jwt.sign(user.plain(), config.app.secret, {}, (error, token) => {
             if(error)
                 return next({
                     status: 500,
