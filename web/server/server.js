@@ -6,6 +6,7 @@
  */
 
 const bodyParser  = require('body-parser');
+const compression = require('compression');
 const express     = require('express');
 const morgan      = require('morgan');
 
@@ -32,8 +33,11 @@ app.use(bodyParser.json());
 
 app.use(morgan('dev'));
 
+/*
+ * Compress all responses bodies.
  */
 
+app.use(compression());
 
  */
 
