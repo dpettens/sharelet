@@ -1,6 +1,6 @@
 {
   "name": "sharelet-web-server",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Web server of the Sharelet project",
   "author": "Denis Pettens <denis.pettens@gmail.com>",
   "private": true,
