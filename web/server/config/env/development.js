@@ -6,12 +6,12 @@ exports.app = {
 };
 
 exports.database = {
-    contactPoints : ['192.168.2.5', '192.168.2.6', '192.168.2.7'],
+    contactPoints : ['127.0.0.1'],
     keyspace: 'sharelet',
     username : 'cassandra',
     password : 'cassandra'
 };
 
 exports.server = {
-    port: '80'
+    port: '8080'
 };
