@@ -9,6 +9,7 @@ const bodyParser  = require('body-parser');
 const compression = require('compression');
 const express     = require('express');
 const morgan      = require('morgan');
+const path        = require('path');
 
 const apiRoutes     = require('./config/routes/api');
 const auth          = require('./libs/auth');
@@ -39,8 +40,11 @@ app.use(morgan('dev'));
 
 app.use(compression());
 
+/*
+ * Configuration of static files.
  */
 
+app.use(express.static(path.resolve('../client/build/')));
 
 /*
  * Auth Middelware to protect sensitive routes with jwt and/or id user.
