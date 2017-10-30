@@ -1,0 +1,22 @@
+{
+  "name": "sharelet-web-client",
+  "version": "0.2.0",
+  "description": "Web client app of the Sharelet project",
+  "author": "Denis Pettens <denis.pettens@gmail.com>",
+  "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/syvido/projet-integration"
+  },
+  "dependencies": {
+    "react": "^16.0.0",
+    "react-dom": "^16.0.0",
+    "react-scripts": "1.0.14"
+  }
+}
