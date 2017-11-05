@@ -414,3 +414,50 @@ exports.update = (req, res, next) => {
     });
 }
 
+/**
+ * Get an id to an user
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.getId = (req, res, next) => {
+    User.findByUserID(req.key, ['users'], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+
+        let doneCnt = 0;
+        let result = [];
+
+        user.id.forEach((user) => {
+            let modele = new Id({user_id: id});
+
+            modele.getAlias((error, alias) => {
+                if (error)
+                    return next({
+                        status: 500,
+                        message: 'Fetch failed. Error with the database.',
+                        log: error
+                    });
+
+                doneCnt++;
+                result.push({id: users, alias: alias.alias});
+
+                if(doneCnt == user.id.length)
+                    return res.status(200).json(result);
+            });
+        });
+    });
+}
