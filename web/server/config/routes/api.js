@@ -27,10 +27,10 @@ router.route('/authenticate')
 router.route('/users')
     .post(usersController.addUser);
 
-// router.route('/users/:id')
-//    .get(userController.get)
-//    .put(userController.update)
-//    .delete(userController.delete);
+router.route('/users/:id')
+    .get(userController.get)
+    .put(userController.update)
+    .delete(userController.delete);
 
 router.route('/users/outlets')
     .get(usersController.getOutlets)
