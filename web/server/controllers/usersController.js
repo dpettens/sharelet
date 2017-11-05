@@ -326,3 +326,91 @@ exports.deleteOutlet = (req, res, next) => {
         });
     });
 }
+
+/**
+ * Remove an user from an account
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.delete = (req, res, next) => {
+    User.findByUserID(req.key, [], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Error with the database.',
+                log: err
+            });
+
+        user.delete(req.params.id, (error, done) => {
+            if(error)
+                return next({
+                    status: 500,
+                    message: 'Error with the database.',
+                    log: error
+                });
+
+            res.status(200).end();
+        });
+    });
+}
+
+/**
+ * Update an user from an account
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.update = (req, res, next) => {
+    User.findByUserID(req.key, ['users'], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Error with the database.',
+                log: err
+            });
+
+        if(user.id.indexOf(req.params.id) > -1)
+        {
+            let id = new Id({user_id: req.params.id});
+            
+            id.setAlias(req.body.alias, (error, result) => {
+                if (error)
+                    return next({
+                        status: 500,
+                        message: 'Save failed. Error with the database.',
+                        log: error
+                    });
+
+                return res.status(201).end();
+            });
+        }
+        else
+        {
+            return next({
+                status: 500,
+                message: 'Unauthorized, User can not update his id' ,
+                log: err
+            });
+        }
+    });
+}
+
