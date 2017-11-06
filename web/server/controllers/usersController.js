@@ -86,6 +86,7 @@ exports.authenticate = (req, res, next) => {
  */
 
 exports.addUser = (req, res, next) => {
+    console.log(req.body);
     UserCredentials.findByEmail(req.body.email, ['email'], (error, result) => {
         if (error)
             return next({
@@ -160,6 +161,10 @@ exports.getOutlets = (req, res, next) => {
 
         let doneCnt = 0;
         let result = [];
+
+        if(user.outlets == null){
+            res.json([]);
+        }
 
         user.outlets.forEach((outlet) => {
             let model = new Outlet({outlet_id: outlet});
@@ -430,7 +435,7 @@ exports.update = (req, res, next) => {
  */
 
 exports.get = (req, res, next) => {
-    User.findByUserID(req.key, ['users'], (err, user) => {
+    User.findByUserID(req.key, [], (err, user) => {
         if (err)
             return next({
                 status: 500,

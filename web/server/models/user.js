@@ -113,7 +113,7 @@ class User {
         cassandra.getConnection((error, client) => {
             if (error)
                 return next(error);
-
+            
             const FIND_USER_CQL = "SELECT " + fields.toString() + " FROM users WHERE userid = " + id;
             client.execute(FIND_USER_CQL, (error, results) => {
                 if (error)
