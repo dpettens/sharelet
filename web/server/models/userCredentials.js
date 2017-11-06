@@ -40,6 +40,21 @@ class UserCredentials {
         });   
     }
 
+    delete(next) {
+        cassandra.getConnection((error, client) => {
+            if (error)
+                return next(error);
+            
+            const SAVE_USERCREDENTIALS_CQL = "DELETE FROM usercredentials WHERE email = '"+this.email+"'";
+            client.execute(SAVE_USERCREDENTIALS_CQL, this, { prepare: true }, (error) => {
+                if (error)
+                    return next(error);
+
+                next(null);
+            });
+        });
+    }
+
     hashPassword(password) {
         return bcrypt.hashSync(password, bcrypt.genSaltSync(8));
     }

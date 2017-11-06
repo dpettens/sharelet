@@ -22,6 +22,21 @@ class User {
         this.outlets      = user.outlets;
     }
 
+    delete(next) {
+        cassandra.getConnection((error, client) => {
+            if (error)
+                return next(error);
+
+            const DELETE_OUTLET_CQL = "DELETE FROM users WHERE userid = "+this.userid;
+            client.execute(DELETE_OUTLET_CQL, (error, results) => {
+                if (error)
+                    return next(error);
+
+                next(null);
+            });
+        });
+    }
+
     save(next) {
         this.created_date = Date.now();
 
@@ -31,6 +46,21 @@ class User {
 
             const ADD_USER_CQL = "INSERT INTO users (userid, firstname, lastname, email, created_date, outlets) VALUES (?, ?, ?, ?, ?, {})";
             client.execute(ADD_USER_CQL, this, { prepare: true }, (error, results) => {
+                if (error)
+                    return next(error);
+
+                next(null);
+            });
+        });
+    }
+
+    update(next){
+        cassandra.getConnection((error, client) => {
+            if (error)
+                return next(error);
+
+            const ADD_USER_CQL = "UPDATE users firstname = ?, lastname = ? WHERE userid = "+this.userid;
+            client.execute(ADD_USER_CQL, [this.firstname, this.lastname], { prepare: true }, (error, results) => {
                 if (error)
                     return next(error);
 

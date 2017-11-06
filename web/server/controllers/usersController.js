@@ -328,7 +328,7 @@ exports.deleteOutlet = (req, res, next) => {
 }
 
 /**
- * Remove an user from an account
+ * Delete the current user
  *
  * Options:
  *
@@ -351,13 +351,23 @@ exports.delete = (req, res, next) => {
                 log: err
             });
 
-        user.delete(req.params.id, (error, done) => {
+        user.delete((error) => {
             if(error)
                 return next({
                     status: 500,
-                    message: 'Error with the database.',
+                    message: 'Error with the database while deleting user.',
                     log: error
                 });
+
+            let synthetic_userCreds = new UserCredentials({email : user.email});
+            synthetic_userCreds.delete((error2) => {
+                if(error)
+                return next({
+                    status: 500,
+                    message: 'Error with the database while deleting usercreds.',
+                    log: error
+                });
+            })
 
             res.status(200).end();
         });
@@ -365,7 +375,7 @@ exports.delete = (req, res, next) => {
 }
 
 /**
- * Update an user from an account
+ * Update the user first name and last name
  *
  * Options:
  *
@@ -388,34 +398,24 @@ exports.update = (req, res, next) => {
                 log: err
             });
 
-        if(user.id.indexOf(req.params.id) > -1)
-        {
-            let id = new Id({user_id: req.params.id});
-            
-            id.setAlias(req.body.alias, (error, result) => {
-                if (error)
-                    return next({
-                        status: 500,
-                        message: 'Save failed. Error with the database.',
-                        log: error
-                    });
+        user.lastname = req.body.lastname;
+        user.firstname = req.body.firstname;
 
-                return res.status(201).end();
-            });
-        }
-        else
-        {
-            return next({
+        user.update((err) => {
+            if(err)
+                return next({
                 status: 500,
-                message: 'Unauthorized, User can not update his id' ,
+                message: 'Error with the database.',
                 log: err
             });
-        }
+
+            res.status(200).end();
+        });
     });
 }
 
 /**
- * Get an id to an user
+ * Get user profile
  *
  * Options:
  *
@@ -429,7 +429,7 @@ exports.update = (req, res, next) => {
  * @public
  */
 
-exports.getId = (req, res, next) => {
+exports.get = (req, res, next) => {
     User.findByUserID(req.key, ['users'], (err, user) => {
         if (err)
             return next({
@@ -438,26 +438,6 @@ exports.getId = (req, res, next) => {
                 log: err
             });
 
-        let doneCnt = 0;
-        let result = [];
-
-        user.id.forEach((user) => {
-            let modele = new Id({user_id: id});
-
-            modele.getAlias((error, alias) => {
-                if (error)
-                    return next({
-                        status: 500,
-                        message: 'Fetch failed. Error with the database.',
-                        log: error
-                    });
-
-                doneCnt++;
-                result.push({id: users, alias: alias.alias});
-
-                if(doneCnt == user.id.length)
-                    return res.status(200).json(result);
-            });
-        });
+        res.json(user);
     });
 }
