@@ -56,13 +56,16 @@ class User {
 
     update(next){
         cassandra.getConnection((error, client) => {
+
             if (error)
                 return next(error);
 
-            const ADD_USER_CQL = "UPDATE users firstname = ?, lastname = ? WHERE userid = "+this.userid;
+            const ADD_USER_CQL = "UPDATE users SET firstname = ?, lastname = ? WHERE userid = "+this.userid;
             client.execute(ADD_USER_CQL, [this.firstname, this.lastname], { prepare: true }, (error, results) => {
-                if (error)
+                if (error){
+                    console.log(error, results);
                     return next(error);
+                }
 
                 next(null);
             });
@@ -113,7 +116,7 @@ class User {
         cassandra.getConnection((error, client) => {
             if (error)
                 return next(error);
-            
+
             const FIND_USER_CQL = "SELECT " + fields.toString() + " FROM users WHERE userid = " + id;
             client.execute(FIND_USER_CQL, (error, results) => {
                 if (error)

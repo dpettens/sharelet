@@ -86,8 +86,15 @@ exports.authenticate = (req, res, next) => {
  */
 
 exports.addUser = (req, res, next) => {
-    console.log(req.body);
     UserCredentials.findByEmail(req.body.email, ['email'], (error, result) => {
+
+        if(!req.body.email || !req.body.password){
+            return next({
+                status: 400,
+                message: 'Missing fields email or password.',
+            });
+        }
+
         if (error)
             return next({
                 status: 500,
@@ -395,7 +402,7 @@ exports.delete = (req, res, next) => {
  */
 
 exports.update = (req, res, next) => {
-    User.findByUserID(req.key, ['users'], (err, user) => {
+    User.findByUserID(req.key, [], (err, user) => {
         if (err)
             return next({
                 status: 500,
@@ -409,10 +416,10 @@ exports.update = (req, res, next) => {
         user.update((err) => {
             if(err)
                 return next({
-                status: 500,
-                message: 'Error with the database.',
-                log: err
-            });
+                    status: 500,
+                    message: 'Error with the database.',
+                    log: err
+                });
 
             res.status(200).end();
         });
