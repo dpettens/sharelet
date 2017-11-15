@@ -3,6 +3,7 @@ import websocket
 import _thread
 import time
 import json
+import RPi.GPIO as GPIO
 
 devusb = serial.Serial("/dev/ttyUSB0")
 
@@ -18,6 +19,11 @@ tplJson = {
 def on_message(ws, message):
     print("Message is %s" % message)
     msgJson = json.loads(message)
+    if msgJson["type"] == 1:
+        if msgJson["closed"]:
+            GPIO.output(7,True)
+        else:
+            GPIO.output(7,False)
 
 def on_error(ws, error):
     print(error)
@@ -38,6 +44,8 @@ def on_open(ws):
 
 
 if __name__ == "__main__":
+    GPIO.setmode(GPIO.BOARD)
+    GPIO.setup(7, GPIO.OUT)
     ws = websocket.WebSocketApp("ws://sharelet.be:3000/",
                               on_message = on_message,
                               on_error = on_error,
