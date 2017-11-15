@@ -12,6 +12,7 @@ const config          = require('../config/env');
 const Outlet          = require('../models/outlet');
 const User            = require('../models/user');
 const UserCredentials = require('../models/userCredentials');
+const wsApi           = require('../libs/wsApi');
 
 /**
  * Try to authenticate the user from the email and password passed in the body
@@ -451,5 +452,31 @@ exports.get = (req, res, next) => {
             });
 
         res.json(user);
+    });
+}
+
+exports.sendCmd = (req, res, next) => {
+    User.findByUserID(req.key, ['outlets'], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+
+        if(user.outlets.indexOf(req.params.id) > -1)
+        {
+            req.body.target = req.params.id;
+            wsApi.send(JSON.stringify(req.body));
+            return res.status(200).end();
+        }
+        else
+        {
+            return next({
+                status: 500,
+                message: 'Unauthorized. User doesn\'t own this outlet',
+                log: err
+            });
+        }
     });
 }
