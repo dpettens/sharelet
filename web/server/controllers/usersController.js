@@ -86,7 +86,6 @@ exports.authenticate = (req, res, next) => {
  */
 
 exports.addUser = (req, res, next) => {
-    console.log(req.body);
     UserCredentials.findByEmail(req.body.email, ['email'], (error, result) => {
         if (error)
             return next({
