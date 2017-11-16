@@ -12,6 +12,7 @@ const config          = require('../config/env');
 const Outlet          = require('../models/outlet');
 const User            = require('../models/user');
 const UserCredentials = require('../models/userCredentials');
+const wsApi           = require('../libs/wsApi');
 
 /**
  * Try to authenticate the user from the email and password passed in the body
@@ -87,6 +88,14 @@ exports.authenticate = (req, res, next) => {
 
 exports.addUser = (req, res, next) => {
     UserCredentials.findByEmail(req.body.email, ['email'], (error, result) => {
+
+        if(!req.body.email || !req.body.password){
+            return next({
+                status: 400,
+                message: 'Missing fields email or password.',
+            });
+        }
+
         if (error)
             return next({
                 status: 500,
@@ -394,7 +403,7 @@ exports.delete = (req, res, next) => {
  */
 
 exports.update = (req, res, next) => {
-    User.findByUserID(req.key, ['users'], (err, user) => {
+    User.findByUserID(req.key, [], (err, user) => {
         if (err)
             return next({
                 status: 500,
@@ -408,10 +417,10 @@ exports.update = (req, res, next) => {
         user.update((err) => {
             if(err)
                 return next({
-                status: 500,
-                message: 'Error with the database.',
-                log: err
-            });
+                    status: 500,
+                    message: 'Error with the database.',
+                    log: err
+                });
 
             res.status(200).end();
         });
@@ -443,5 +452,31 @@ exports.get = (req, res, next) => {
             });
 
         res.json(user);
+    });
+}
+
+exports.sendCmd = (req, res, next) => {
+    User.findByUserID(req.key, ['outlets'], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+
+        if(user.outlets.indexOf(req.params.id) > -1)
+        {
+            req.body.target = req.params.id;
+            wsApi.send(JSON.stringify(req.body));
+            return res.status(200).end();
+        }
+        else
+        {
+            return next({
+                status: 500,
+                message: 'Unauthorized. User doesn\'t own this outlet',
+                log: err
+            });
+        }
     });
 }

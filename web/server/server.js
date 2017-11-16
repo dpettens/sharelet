@@ -88,3 +88,6 @@ app.set('port', serverOptions.port);
 app.listen(app.get('port'), () => {
     console.log('App listening on port ' + app.get('port'));
 });
+
+
+module.exports = app; //for testing

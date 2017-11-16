@@ -7,6 +7,7 @@ exports.app = {
 
 exports.database = {
     contactPoints : ['192.168.2.5', '192.168.2.6', '192.168.2.7'],
+    appEndpoint : '192.168.2.8',
     keyspace: 'sharelet',
     username : 'cassandra',
     password : 'cassandra'

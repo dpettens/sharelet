@@ -15,8 +15,8 @@ module.exports = (function (env) {
         case 'development':
             config = require('./development');
             break;
-        case 'testing':
-            config = require('./testing');
+        case 'test':
+            config = require('./test');
             break;
         case 'staging':
             config = require('./staging');

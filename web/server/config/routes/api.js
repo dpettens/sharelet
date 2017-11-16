@@ -36,7 +36,8 @@ router.route('/users/outlets')
 
 router.route('/users/outlets/:id')
     .put(usersController.updateOutlet)
-    .delete(usersController.deleteOutlet);
+    .delete(usersController.deleteOutlet)
+    .post(usersController.sendCmd);
 
 router.route('/outlets/:id/data/:date')
     .get(outletsController.getData)
@@ -60,8 +61,8 @@ router.use(function(err, req, res, next) {
     if(err.status <= 100 && err.stats > 600) 
         err.status = 500;
     
-    //if(req.app.get('env') === 'production')
-    //    delete err.log;
+    if(req.app.get('env') === 'production')
+        delete err.log;
 
     return res.status(err.status).json(err);
 });
