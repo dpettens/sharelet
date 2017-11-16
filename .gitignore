@@ -234,7 +234,10 @@ $RECYCLE.BIN/
 
 # End of https://www.gitignore.io/api/linux,macos,windows,c,node,sublimetext,visualstudiocode,vim
 
-# Specific projet rules
+### Intellij ###
+.idea/
 
-# build react app folder 
+### Specific projet rules ###
+
+# build react app folder
 web/client/build
