@@ -2,7 +2,7 @@
 
 exports.app = {
     secret : process.env.SECRET,
-    salt : "auth-sharelet",
+    salt : process.env.SALT,
 };
 
 exports.database = {

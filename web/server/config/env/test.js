@@ -2,7 +2,7 @@
 
 exports.app = {
     secret : 'TEST-SECRET',
-    salt : "auth-sharelet",
+    salt : 'auth-sharelet',
 };
 
 exports.database = {
