@@ -1,13 +1,16 @@
-create keyspace sharelet with replication = {'class':'SimpleStrategy','replication_factor':2};
-
-use sharelet;
 CREATE TABLE consumption_by_day (
 	outlet_id text,
 	date text,
 	event_time timestamp,
 	sensor_type int,
 	sensor_value int,
-	PRIMARY KEY ((outlet_id,date),sensor_type,event_time)
+	PRIMARY KEY ((outlet_id, date), sensor_type, event_time)
+);
+
+CREATE TABLE outlet_alias (
+    outlet_id text,
+    alias text,
+    PRIMARY KEY (outlet_id)
 );
 
 CREATE TABLE users (
@@ -26,4 +29,3 @@ CREATE TABLE usercredentials (
     userid uuid,
     PRIMARY KEY (email)
 );
-
