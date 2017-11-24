@@ -280,7 +280,7 @@ exports.updateOutlet = (req, res, next) => {
         if(user.outlets.indexOf(req.params.id) > -1)
         {
             let outlet = new Outlet({outlet_id: req.params.id});
-            
+
             outlet.setAlias(req.body.alias, (error, result) => {
                 if (error)
                     return next({
@@ -373,16 +373,16 @@ exports.delete = (req, res, next) => {
                 });
 
             let synthetic_userCreds = new UserCredentials({email : user.email});
-            synthetic_userCreds.delete((error2) => {
+            synthetic_userCreds.delete((error) => {
                 if(error)
-                return next({
-                    status: 500,
-                    message: 'Error with the database while deleting usercreds.',
-                    log: error
-                });
-            })
+                    return next({
+                        status: 500,
+                        message: 'Error with the database while deleting usercreds.',
+                        log: error
+                    });
 
-            res.status(200).end();
+                res.status(200).end();
+            })
         });
     });
 }
