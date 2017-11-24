@@ -1,14 +1,17 @@
 const WebSocket = require('ws');
 const config    = require('../config/env');
 
-var singletonWS = null;
+let singletonWS = null;
 
-var getInstance = () => {
+module.exports =  getInstance = (next) => {
 	if(singletonWS == null) {
-		singletonWS = new WebSocket(config.ws.appEndpoint);
-    }
+		try {
+			singletonWS = new WebSocket(config.ws.appEndpoint);
+		}
+		catch(error) {
+			next(error);
+		}
+  }
 
-	return singletonWS;
+	next(null, singletonWS);
 };
-
-module.exports = getInstance();

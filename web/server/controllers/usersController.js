@@ -460,15 +460,24 @@ exports.sendCmd = (req, res, next) => {
         if (err)
             return next({
                 status: 500,
-                message: 'Fetch failed. Error with the database.',
+                message: 'Send command failed. Error with the database.',
                 log: err
             });
 
         if(user.outlets.indexOf(req.params.id) > -1)
         {
-            req.body.target = req.params.id;
-            wsApi.send(JSON.stringify(req.body));
-            return res.status(200).end();
+            wsApi.getInstance((err, connexion) => {
+                if (err)
+                    return next({
+                        status: 500,
+                        message: 'Send command failed. Error with the websocket.',
+                        log: err
+                    });
+
+                req.body.target = req.params.id;
+                connexion.send(JSON.stringify(req.body));
+                return res.status(200).end();
+            });
         }
         else
         {
