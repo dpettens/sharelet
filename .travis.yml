@@ -1,0 +1,13 @@
+sudo: required # Required for cassandra
+language: node_js
+
+node_js:
+  - 6
+
+services:
+  - cassandra
+
+before_script:
+  - cqlsh 127.0.0.1 9042 -u cassandra -p cassandra -e "CREATE KEYSPACE sharelet;"
+  - cqlsh 127.0.0.1 9042 -u cassandra -p cassandra -k sharelet -f bdd/schema.cql
+  - cd web/server

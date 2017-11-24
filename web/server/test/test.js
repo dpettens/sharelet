@@ -4,7 +4,9 @@
  */
 
 //Be very sure that we will use the test environment
-process.env.NODE_ENV = 'test';
+if(process.env.NODE_ENV !== 'test') {
+    process.env.NODE_ENV = 'test';
+}
 
 let chai = require('chai');
 let chaiHttp = require('chai-http');
