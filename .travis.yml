@@ -1,13 +1,25 @@
-sudo: required # Required for cassandra
+sudo: required
 language: node_js
 
 node_js:
   - 6
 
-services:
-  - cassandra
+addons:
+  apt:
+   packages:
+    - oracle-java8-installer
+
+before_install:
+  - sudo update-java-alternatives -s java-8-oracle
+  - export JAVA_HOME=/usr/lib/jvm/java-8-oracle
+  - java -version
+  - sudo rm -rf /var/lib/cassandra/*
+  - wget http://www.us.apache.org/dist/cassandra/3.11.0/apache-cassandra-3.11.0-bin.tar.gz &&  tar zxvf apache-cassandra-3.11.0-bin.tar.gz
+  - sudo sh ./apache-cassandra-3.11.0/bin/cassandra -R
+  - sleep 20
 
 before_script:
-  - cqlsh 127.0.0.1 9042 -u cassandra -p cassandra -e "CREATE KEYSPACE sharelet;"
-  - cqlsh 127.0.0.1 9042 -u cassandra -p cassandra -k sharelet -f bdd/schema.cql
+  - cqlsh -u cassandra -p cassandra -e "CREATE KEYSPACE sharelet WITH replication = {'class':'SimpleStrategy', 'replication_factor':1};" --cqlversion=3.4.4
+  - cqlsh -u cassandra -p cassandra -k sharelet -f bdd/schema.cql --cqlversion=3.4.4
   - cd web/server
+  - npm install

@@ -6,9 +6,9 @@
   "private": true,
   "main": "server.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=production node server.js",
-    "dev": "cross-env NODE_ENV=development nodemon server.js",
-    "test": "cross-env NODE_ENV=test mocha"
+    "start": "NODE_ENV=production node server.js",
+    "dev": "NODE_ENV=development nodemon server.js",
+    "test": "NODE_ENV=test mocha"
   },
   "repository": {
     "type": "git",
@@ -28,7 +28,6 @@
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
-    "cross-env": "^5.1.0",
     "mocha": "^4.0.1",
     "nodemon": "^1.12.1"
   }
