@@ -17,5 +17,5 @@ exports.ws = {
 };
 
 exports.server = {
-    port: '80'
+    port: '8080'
 };
