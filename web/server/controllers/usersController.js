@@ -87,15 +87,14 @@ exports.authenticate = (req, res, next) => {
  */
 
 exports.addUser = (req, res, next) => {
+    if(!req.body.email || !req.body.password){
+        return next({
+            status: 400,
+            message: 'Missing fields email or password.',
+        });
+    }
+
     UserCredentials.findByEmail(req.body.email, ['email'], (error, result) => {
-
-        if(!req.body.email || !req.body.password){
-            return next({
-                status: 400,
-                message: 'Missing fields email or password.',
-            });
-        }
-
         if (error)
             return next({
                 status: 500,
@@ -382,7 +381,7 @@ exports.delete = (req, res, next) => {
                     });
 
                 res.status(200).end();
-            })
+            });
         });
     });
 }
