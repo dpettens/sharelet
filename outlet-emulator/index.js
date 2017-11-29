@@ -1,4 +1,5 @@
 const WebSocket = require('ws');
+const chalk = require('chalk');
 
 let outlet_emu = {
   relais: false
@@ -6,11 +7,18 @@ let outlet_emu = {
 
 let timer = null;
 let ws = null;
+let val = 0;
 
 function getData(){
   if(outlet_emu.relais)
     return Math.random()*30;
   return 0;
+}
+
+function updateMsg(){
+  process.stderr.clearLine();
+  process.stderr.cursorTo(0);
+  process.stderr.write("Etat circuit : "+(outlet_emu.relais?chalk.green("ON"):chalk.red("OFF"))+". Mesure Puissance Watt : "+val.toFixed(2));
 }
 
 function onMessage(message){
@@ -19,15 +27,15 @@ function onMessage(message){
     if(json.type == 0){
       outlet_emu.relais = json.closed;
       if(json.closed){
-        console.log("Relais fermé, circuit ON", message);
+        updateMsg();
+//        console.log("Relais fermé, circuit ON", message);
       }else{
-        console.log("Relais ouvert, circuit OFF", message);
+        updateMsg();
+//        console.log("Relais ouvert, circuit OFF", message);
       }
     }else{
-      console.log("unknown message", json);
     }
   }catch(e){
-    console.log("ERR JSON", message);
   }
 }
 
@@ -36,14 +44,15 @@ function setupDataInverval(){
   timer = setInterval(() => {
     let now = new Date();
     let timestamp = now.getTime()/1000;
-
+    val = getData();
+    updateMsg();
     let data = {
       "type" : 1,
       "outlet_id" : "simu",
       "pwd" : "ZohE0mKWqHY6wBubVbtW4YeXt4135YAjmfDzUExJTVI=",
       "timestamp" : timestamp,
       "data" : [
-        {"sensor_type" : 0, "value" : getData()}
+        {"sensor_type" : 0, "value" : val}
       ]
     }
     

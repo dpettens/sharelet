@@ -9,6 +9,7 @@
   "author": "izanagi1995 <nsurleraux@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "chalk": "^2.3.0",
     "ws": "^3.3.1"
   }
 }

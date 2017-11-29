@@ -7,6 +7,8 @@ const client = new cassandra.Client({ contactPoints: ['192.168.2.5', '192.168.2.
 
 const SALT = "auth-sharelet";
 const INSERT_DATA_CQL = "INSERT INTO consumption_by_day (outlet_id, date, event_time, sensor_type, sensor_value) VALUES (?, ?, ?, ?, ?)";
+const GET_SETTINGS_START = "SELECT * FROM outlets_alert WHERE outlet_id = '";
+const GET_SETTINGS_END = "'";
 
 const wss = new WebSocket.Server({ port: 3000 });
 const wssFromAPI = new WebSocket.Server({ port: 3001 });
@@ -23,12 +25,22 @@ wss.on('connection', function connection(ws) {
     if(hash == data.pwd){
       if(!wsClients.hasOwnProperty(data.outlet_id) || wsClients[data.outlet_id] != ws){
         wsClients[data.outlet_id] = ws;
+        client.execute(GET_SETTINGS_START+data.outlet_id+GET_SETTINGS_END).then(function(res){
+          if(res.rows.length !== 0){
+            wsClients[data.outlet_id].alerts = res.rows[0];
+          }
+        });
       }
       for(var i in data.data){
-        client.execute(INSERT_DATA_CQL, [data.outlet_id, date_str, date, data.data[i].sensor_type, data.data[i].value], {prepare: true}).then(function(res){ws.send("OK");});
+        client.execute(INSERT_DATA_CQL, [data.outlet_id, date_str, date, data.data[i].sensor_type, data.data[i].value], {prepare: true}).then(function(res){ws.send("{'res' : 'OK'}");});
+        let val = data.data[i].value;
+        let alerts = wsClients[data.outlet_id].alerts;
+        if(val < alerts.low || val > alerts.high){
+          console.log("We have an alert here");
+        }
       }
     }else{
-      ws.send("NOK");
+      ws.send("{'res' : 'NOK'}");
     }
   });
 });
