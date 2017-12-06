@@ -50,7 +50,7 @@ const Service = ({ center, classes }) => (
                   Génération de rapports
                 </Typography>
                 <Typography align="justify">
-                  A intervalle régulier, nous générerons un rapport afin de vous faire une idée de la consommation de vos appareils.
+                  A intervalles réguliers, nous générerons un rapport afin de vous faire une idée de la consommation de vos appareils.
                 </Typography>
               </Paper>
             </Grid>

@@ -40,7 +40,7 @@ const Outlet = ({ center, classes }) => (
                   Surveillance de consommation
                 </Typography>
                 <Typography align="justify">
-                  Notre prise vous permet de surveiller votre consommation en définissant des seuils de sécurite. Ces seuils vous permettront d'être averti en temps réel en cas de surconsommation ou dysfonctionnement de votre appareil.
+                  Notre prise vous permet de surveiller votre consommation en définissant des seuils de sécurité. Ces seuils vous permettront d'être averti en temps réel en cas de surconsommation ou dysfonctionnement de votre appareil.
                 </Typography>
               </Paper>
             </Grid>
