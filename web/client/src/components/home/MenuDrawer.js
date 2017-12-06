@@ -45,6 +45,16 @@ const MenuDrawer = ({ classes, isOpen, toggleDrawer }) => (
             <ListItemText primary="Accueil" />
           </ListItem>
         </a>
+        <a className={classes.link} href="#outlet">
+          <ListItem button>
+            <ListItemText primary="La prise" />
+          </ListItem>
+        </a>
+        <a className={classes.link} href="#service">
+          <ListItem button>
+            <ListItemText primary="Notre service" />
+          </ListItem>
+        </a>
         <a className={classes.link} href="#about">
           <ListItem button>
             <ListItemText primary="À propos" />
