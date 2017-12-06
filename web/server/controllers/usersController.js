@@ -218,8 +218,9 @@ exports.getOutlets = (req, res, next) => {
 
 exports.addOutlet = (req, res, next) => {
     const md5hash = crypto.createHash('md5').update(req.body.outlet_id).digest('base64');
-    const hash = crypto.createHash('sha256').update(config.salt + md5hash + config.salt).digest('base64');
+    const hash = crypto.createHash('sha256').update(config.app.salt + md5hash + config.app.salt).digest('base64');
     const pwd = hash.substring(0, 5);
+    console.log(req.body.outlet_id, config.app.salt, pwd);
 
     if(req.body.pwd == pwd)
     {
