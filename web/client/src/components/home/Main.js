@@ -8,6 +8,8 @@ import Header from './Header';
 import Home from './Home';
 import About from './About';
 import Contact from './Contact';
+import Outlet from './Outlet';
+import Service from './Service';
 import SectionsControllers from './SectionsControllers';
 import Alert from '../Alert';
 
@@ -37,7 +39,7 @@ class Main extends Component {
     };
 
     this.options = {
-      anchors: ['home', 'about', 'contact'],
+      anchors: ['home', 'outlet', 'service', 'about', 'contact'],
       arrowNavigation: true,
       navigation: false,
       scrollBar: false,
@@ -63,6 +65,8 @@ class Main extends Component {
         <ScrollToTopOnMount />
         <SectionsContainer activeSection={current} {...this.options}>
           <Home center={classes.center} />
+          <Outlet center={classes.center} />
+          <Service center={classes.center} />
           <About center={classes.center} />
           <Contact center={classes.center} />
         </SectionsContainer>

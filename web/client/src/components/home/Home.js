@@ -23,7 +23,7 @@ const Home = ({ center, classes }) => (
           Sharelet
         </Typography>
         <Typography align="center" color="inherit" component="h2" type="display1">
-          A Smart Plug for Business
+          A Smart Plug and An Easy Service for Business
         </Typography>
       </div>
     </div>
