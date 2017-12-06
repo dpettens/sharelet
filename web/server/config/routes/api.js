@@ -42,7 +42,7 @@ router.route('/users/outlets/:id')
 router.route('/outlets/:id/data/:date')
     .get(outletsController.getData)
 
-router.route('/outles/:id/alerts/settings')
+router.route('/outlets/:id/alerts/settings')
     .get(outletsController.getAlertSettings)
     .put(outletsController.updateAlertSettings)
 
