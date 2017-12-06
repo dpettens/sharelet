@@ -170,7 +170,7 @@ exports.getOutlets = (req, res, next) => {
         let result = [];
 
         if(user.outlets == null){
-            res.json([]);
+            return res.json([]);
         }
 
         user.outlets.forEach((outlet) => {
