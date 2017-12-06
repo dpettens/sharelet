@@ -54,7 +54,7 @@ class Header extends Component {
         </Link>,
         <Link key="2" to="/signout">
           <Button className={classes.authButton} color="accent" raised>
-            Déconnection
+            Déconnexion
           </Button>
         </Link>
       ];

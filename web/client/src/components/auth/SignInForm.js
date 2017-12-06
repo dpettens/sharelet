@@ -7,7 +7,7 @@ import { FormControl } from 'material-ui/Form';
 import { CircularProgress } from 'material-ui/Progress';
 import Typography from 'material-ui/Typography';
 import Button from 'material-ui/Button';
-import Send from 'material-ui-icons/Send';
+import SendIcon from 'material-ui-icons/Send';
 
 const styles = theme => ({
   buttons : {
@@ -83,7 +83,7 @@ const SignInForm = ({ classes, handleSubmit, invalid, submitting }) => {
               type="submit"
             >
               Envoyer
-              <Send className={classes.rightIcon} />
+              <SendIcon className={classes.rightIcon} />
             </Button>
             {submitting && <CircularProgress className={classes.buttonProgress} size={30} />}
           </div>

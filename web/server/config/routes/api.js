@@ -51,7 +51,7 @@ router.route('/outles/:id/alerts/settings')
  */
 
 router.use(function(req, res, next) {
-    next({
+    return next({
         status: 404,
         message: 'Api URL non trouvée :('
     });

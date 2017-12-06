@@ -1,5 +1,15 @@
 import axios from 'axios';
 
+let httpClient = axios.create({
+  baseURL: '/api/v1'
+});
+
+let httpClientConfig = {
+  headers: {
+    'x-access-token': (localStorage.getItem('token')) ? localStorage.getItem('token') : undefined
+  }
+};
+
 export const SIGN_IN_SUCCESS            = 'SIGN_IN_SUCCESS';
 export const SIGN_IN_ERROR              = 'SIGN_IN_ERROR';
 export const SIGN_OUT_SUCCESS           = 'SIGN_OUT_SUCCESS';
@@ -9,7 +19,8 @@ export const SIGN_UP_ERROR              = 'SIGN_UP_ERROR';
 export const SIGN_ERROR_MESSAGE_CLEAR   = 'SIGN_ERROR_MESSAGE_CLEAR';
 export const SIGN_INFO_MESSAGE_CLEAR    = 'SIGN_INFO_MESSAGE_CLEAR';
 
-const API_URI = '/api/v1';
+export const ADD_OUTLET_SUCCESS         = 'ADD_OUTLET_SUCCESS';
+export const ADD_OUTLET_ERROR           = 'ADD_OUTLET_ERROR';
 
 /*
  * Auth actions
@@ -38,17 +49,17 @@ export const signInError = error => ({
 
 export const signIn = (user, history) => {
   return dispatch => {
-    axios.post(`${API_URI}/authenticate`, user)
+    httpClient.post('/authenticate', user)
       .then(response => {
         // Save the token
         localStorage.setItem('token', response.data.token);
-        axios.defaults.headers.common['Authorization'] = response.data.token;
-        console.log(axios.defaults.headers.common['Authorization']);
+        httpClientConfig['x-access-token'] = response.data.token;
 
         dispatch(signInSuccess(`Bonjour, ${user.email} :)`));
         history.push('/');
       })
       .catch(error => {
+        console.log(error);
         if(error.response.data.message)
           dispatch(signInError(error.response.data.message));
         else
@@ -72,17 +83,17 @@ export const signOut = history => {
   return dispatch => {
     // Clear the token
     localStorage.removeItem('token');
-    axios.defaults.headers.common['Authorization'] = undefined;
+    httpClientConfig['x-access-token'] = undefined;
 
     dispatch(signOutSuccess('Vous avez bien été déconnecté'));
     history.push('/dashboard');
 
     /* TODO: use jwt-blacklist in server api
-      axios.post(`${API_URI}/unauthenticate`)
+      httpClient.post('/unauthenticate')
         .then(() => {
           // Clear the token
           localStorage.removeItem('token');
-          axios.defaults.headers.common['Authorization'] = undefined;
+          httpClientConfig['x-access-token'] = undefined;
 
           dispatch(signOutSuccess('Vous avez bien été déconnecté'));
           history.push('/');
@@ -111,7 +122,7 @@ export const signUpError = error => ({
 
 export const signUp = (data, history) => {
   return dispatch => {
-    axios.post(`${API_URI}/users`, data)
+    httpClient.post('/users', data)
       .then(() => {
         // Redirect to Sign In Page
         dispatch(signUpSuccess('Votre compte a bien été créé'));
@@ -123,5 +134,46 @@ export const signUp = (data, history) => {
         else
           dispatch(signUpError('Une erreur est survenue lors de la création de l\'utilisateur !'));
       });
+  };
+};
+
+/**
+ * Outlet actions
+ */
+
+// Add outlet
+export const addOutletSuccess = message => ({
+  type: ADD_OUTLET_SUCCESS,
+  payload: message
+});
+
+export const addOutletError = error => ({
+  type: ADD_OUTLET_ERROR,
+  payload: error
+});
+
+export const addOutlet = (outlet) => {
+  return dispatch => {
+    console.log(httpClientConfig['x-access-token']);
+    httpClient.get('/users', httpClientConfig)
+      .then(response => {
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+    /*
+    httpClient.post('/users/outlets', outlet, httpClientConfig)
+      .then(response => {
+        dispatch(addOutletSuccess(`La prise a bien été ajoutée.`));
+      })
+      .catch(error => {
+        console.log(error);
+        if(error.response.data.message)
+          dispatch(addOutletError(error.response.data.message));
+        else
+          dispatch(addOutletError('Une erreur est survenue lors de la connexion !'));
+      });
+      */
   };
 };

@@ -6,8 +6,8 @@ exports.app = {
 };
 
 exports.database = {
-    contactPoints : ['127.0.0.1'],
-    keyspace: 'sharelet',
+    contactPoints : ['192.168.2.5', '192.168.2.6', '192.168.2.7'],
+    keyspace: 'sharelet_test',
     username : 'cassandra',
     password : 'cassandra'
 };

@@ -87,7 +87,7 @@ exports.authenticate = (req, res, next) => {
  */
 
 exports.addUser = (req, res, next) => {
-    if(!req.body.email || !req.body.password){
+    if(!req.body.email || !req.body.password) {
         return next({
             status: 400,
             message: 'Missing fields email or password.',
