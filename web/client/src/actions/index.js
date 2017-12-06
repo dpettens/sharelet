@@ -53,7 +53,7 @@ export const signIn = (user, history) => {
       .then(response => {
         // Save the token
         localStorage.setItem('token', response.data.token);
-        httpClientConfig['x-access-token'] = response.data.token;
+        httpClientConfig.headers['x-access-token'] = response.data.token;
 
         dispatch(signInSuccess(`Bonjour, ${user.email} :)`));
         history.push('/');
@@ -83,7 +83,7 @@ export const signOut = history => {
   return dispatch => {
     // Clear the token
     localStorage.removeItem('token');
-    httpClientConfig['x-access-token'] = undefined;
+    httpClientConfig.headers['x-access-token'] = undefined;
 
     dispatch(signOutSuccess('Vous avez bien été déconnecté'));
     history.push('/dashboard');
@@ -154,7 +154,7 @@ export const addOutletError = error => ({
 
 export const addOutlet = (outlet) => {
   return dispatch => {
-    console.log(httpClientConfig['x-access-token']);
+    console.log(httpClientConfig.headers['x-access-token']);
     httpClient.get('/users', httpClientConfig)
       .then(response => {
         console.log(response);
