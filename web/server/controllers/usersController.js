@@ -185,7 +185,7 @@ exports.getOutlets = (req, res, next) => {
                     });
 
                 doneCnt++;
-                result.push({id: outlet, alias: alias.alias});
+                result.push({id: outlet, alias: (alias != null && alias.alias != null) ? alias.alias : null});
 
                 if(doneCnt == user.outlets.length)
                     return res.status(200).json(result);

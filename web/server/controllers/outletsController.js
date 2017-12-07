@@ -57,7 +57,7 @@ exports.updateAlertSettings = (req, res, next) => {
         if (err)
             return next({
                 status: 500,
-                message: 'Fetch failed. Error with the database.',
+                message: 'Update failed. Error with the database.',
                 log: err
             });
 
