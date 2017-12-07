@@ -108,7 +108,7 @@ class Add extends Component {
                 margin="normal"
                 name="pwd"
                 placeholder="Mot de passe"
-                type="password"
+                type="text"
               />
             </FormControl>
           </DialogContent>
