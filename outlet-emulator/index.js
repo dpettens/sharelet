@@ -2,23 +2,32 @@ const WebSocket = require('ws');
 const chalk = require('chalk');
 
 let outlet_emu = {
-  relais: false
+  relais: true
 }
 
 let timer = null;
 let ws = null;
 let val = 0;
+let low = 30;
+let high = 70;
+let probaAlert = 30;
+let isAlert = false;
 
 function getData(){
-  if(outlet_emu.relais)
-    return Math.random()*30;
+  isAlert = Math.random()*100 < probaAlert;
+  if(outlet_emu.relais){
+    if(!isAlert)
+      return Math.random()*(high - low) + low;
+    else
+      return Math.random()*low;
+  }
   return 0;
 }
 
 function updateMsg(){
   process.stderr.clearLine();
   process.stderr.cursorTo(0);
-  process.stderr.write("Etat circuit : "+(outlet_emu.relais?chalk.green("ON"):chalk.red("OFF"))+". Mesure Puissance Watt : "+val.toFixed(2));
+  process.stderr.write("Etat circuit : "+(outlet_emu.relais?chalk.green("ON"):chalk.red("OFF"))+". Mesure Puissance Watt : "+val.toFixed(2)+". En alerte : "+(!isAlert?chalk.green("NON"):chalk.red("OUI")));
 }
 
 function onMessage(message){
