@@ -34,6 +34,19 @@ class Outlet {
         });
     }
 
+    getState(next) {
+        cassandra.getConnection((error, client) => {
+            if(error)
+                return next(error);
+            const GET_STATE_CQL = "SELECT state FROM outlet_state WHERE outlet_id = '"+this.outlet_id +"'";
+            client.execute(GET_STATE_CQL, (error, state) => {
+                if(error)
+                    return next(error);
+                next(null, state.rows);
+            });
+        });
+    }
+
     getAlias(next){
     	cassandra.getConnection((error, client) => {
             if(error)
