@@ -183,12 +183,14 @@ exports.getOutlets = (req, res, next) => {
                         message: 'Fetch failed. Error with the database.',
                         log: error
                     });
+                model.getState((error, state) => {
+                    doneCnt++;
+                    result.push({id: outlet, alias: (alias != null && alias.alias != null) ? alias.alias : null, state : state});
+                
+                    if(doneCnt == user.outlets.length)
+                        return res.status(200).json(result);
+                });
 
-                doneCnt++;
-                result.push({id: outlet, alias: alias.alias});
-
-                if(doneCnt == user.outlets.length)
-                    return res.status(200).json(result);
             });
         });
     });
@@ -221,6 +223,9 @@ exports.addOutlet = (req, res, next) => {
     const hash = crypto.createHash('sha256').update(config.app.salt + md5hash + config.app.salt).digest('base64');
     const pwd = hash.substring(0, 5);
     console.log(req.body.outlet_id, config.app.salt, pwd);
+
+    console.log(hash);
+    console.log(pwd);
 
     if(req.body.pwd == pwd)
     {
