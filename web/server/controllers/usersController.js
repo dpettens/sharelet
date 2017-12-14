@@ -183,12 +183,14 @@ exports.getOutlets = (req, res, next) => {
                         message: 'Fetch failed. Error with the database.',
                         log: error
                     });
+                model.getState((error, state) => {
+                    doneCnt++;
+                    result.push({id: outlet, alias: (alias != null && alias.alias != null) ? alias.alias : null}, state : state);
+                
+                    if(doneCnt == user.outlets.length)
+                        return res.status(200).json(result);
+                });
 
-                doneCnt++;
-                result.push({id: outlet, alias: (alias != null && alias.alias != null) ? alias.alias : null});
-
-                if(doneCnt == user.outlets.length)
-                    return res.status(200).json(result);
             });
         });
     });
