@@ -42,7 +42,10 @@ class Outlet {
             client.execute(GET_STATE_CQL, (error, state) => {
                 if(error)
                     return next(error);
-                next(null, state.rows);
+                if(state.rows.length == 0)
+                    return next(null, false);
+
+                next(null, state.rows[0].state);
             });
         });
     }
