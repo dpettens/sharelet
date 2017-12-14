@@ -222,6 +222,9 @@ exports.addOutlet = (req, res, next) => {
     const hash = crypto.createHash('sha256').update(config.salt + md5hash + config.salt).digest('base64');
     const pwd = hash.substring(0, 5);
 
+    console.log(hash);
+    console.log(pwd);
+
     if(req.body.pwd == pwd)
     {
         User.findByUserID(req.key, [], (err, user) => {
