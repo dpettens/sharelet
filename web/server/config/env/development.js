@@ -1,16 +1,19 @@
 'use strict';
 
 exports.app = {
-    secret : process.env.SECRET,
-    salt : "auth-sharelet",
+    secret : 'DEV-SECRET',
+    salt : 'auth-sharelet',
 };
 
 exports.database = {
-    contactPoints : ['127.0.0.1'],
-    appEndpoint : '192.168.2.8',
-    keyspace: 'sharelet',
+    contactPoints : ['192.168.2.5', '192.168.2.6', '192.168.2.7'],
+    keyspace: 'sharelet_dev',
     username : 'cassandra',
     password : 'cassandra'
+};
+
+exports.ws = {
+    appEndpoint : '192.168.2.8'
 };
 
 exports.server = {

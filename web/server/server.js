@@ -41,6 +41,11 @@ app.use(morgan('dev'));
 app.use(compression());
 
 /*
+ * Disable caching
+ */
+app.disable('etag');
+
+/*
  * Configuration of static files.
  */
 

@@ -87,15 +87,14 @@ exports.authenticate = (req, res, next) => {
  */
 
 exports.addUser = (req, res, next) => {
+    if(!req.body.email || !req.body.password) {
+        return next({
+            status: 400,
+            message: 'Missing fields email or password.',
+        });
+    }
+
     UserCredentials.findByEmail(req.body.email, ['email'], (error, result) => {
-
-        if(!req.body.email || !req.body.password){
-            return next({
-                status: 400,
-                message: 'Missing fields email or password.',
-            });
-        }
-
         if (error)
             return next({
                 status: 500,
@@ -171,7 +170,7 @@ exports.getOutlets = (req, res, next) => {
         let result = [];
 
         if(user.outlets == null){
-            res.json([]);
+            return res.json([]);
         }
 
         user.outlets.forEach((outlet) => {
@@ -186,7 +185,7 @@ exports.getOutlets = (req, res, next) => {
                     });
 
                 doneCnt++;
-                result.push({id: outlet, alias: alias.alias});
+                result.push({id: outlet, alias: (alias != null && alias.alias != null) ? alias.alias : null});
 
                 if(doneCnt == user.outlets.length)
                     return res.status(200).json(result);
@@ -219,8 +218,9 @@ exports.getOutlets = (req, res, next) => {
 
 exports.addOutlet = (req, res, next) => {
     const md5hash = crypto.createHash('md5').update(req.body.outlet_id).digest('base64');
-    const hash = crypto.createHash('sha256').update(config.salt + md5hash + config.salt).digest('base64');
+    const hash = crypto.createHash('sha256').update(config.app.salt + md5hash + config.app.salt).digest('base64');
     const pwd = hash.substring(0, 5);
+    console.log(req.body.outlet_id, config.app.salt, pwd);
 
     console.log(hash);
     console.log(pwd);
@@ -283,7 +283,7 @@ exports.updateOutlet = (req, res, next) => {
         if(user.outlets.indexOf(req.params.id) > -1)
         {
             let outlet = new Outlet({outlet_id: req.params.id});
-            
+
             outlet.setAlias(req.body.alias, (error, result) => {
                 if (error)
                     return next({
@@ -376,16 +376,16 @@ exports.delete = (req, res, next) => {
                 });
 
             let synthetic_userCreds = new UserCredentials({email : user.email});
-            synthetic_userCreds.delete((error2) => {
+            synthetic_userCreds.delete((error) => {
                 if(error)
-                return next({
-                    status: 500,
-                    message: 'Error with the database while deleting usercreds.',
-                    log: error
-                });
-            })
+                    return next({
+                        status: 500,
+                        message: 'Error with the database while deleting usercreds.',
+                        log: error
+                    });
 
-            res.status(200).end();
+                res.status(200).end();
+            });
         });
     });
 }
@@ -463,15 +463,24 @@ exports.sendCmd = (req, res, next) => {
         if (err)
             return next({
                 status: 500,
-                message: 'Fetch failed. Error with the database.',
+                message: 'Send command failed. Error with the database.',
                 log: err
             });
 
         if(user.outlets.indexOf(req.params.id) > -1)
         {
-            req.body.target = req.params.id;
-            wsApi.send(JSON.stringify(req.body));
-            return res.status(200).end();
+            wsApi.getInstance((err, connexion) => {
+                if (err)
+                    return next({
+                        status: 500,
+                        message: 'Send command failed. Error with the websocket.',
+                        log: err
+                    });
+
+                req.body.target = req.params.id;
+                connexion.send(JSON.stringify(req.body));
+                return res.status(200).end();
+            });
         }
         else
         {

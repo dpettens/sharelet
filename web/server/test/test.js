@@ -4,7 +4,9 @@
  */
 
 //Be very sure that we will use the test environment
-process.env.NODE_ENV = 'test';
+if(process.env.NODE_ENV !== 'test') {
+    process.env.NODE_ENV = 'test';
+}
 
 let chai = require('chai');
 let chaiHttp = require('chai-http');
@@ -229,12 +231,13 @@ describe('Clean up (delete user)', () => {
 	it('it should delete the user', (done) => {
 		chai.request(server)
 			.delete('/api/v1/users')
+			.set('x-access-token', token)
 			.end((err, res) => {
 				chai.request(server)
 					.post('/api/v1/authenticate')
 					.send(user)
 					.end((err, res) => {
-						res.should.have.status(400);
+						res.should.have.status(404);
 						done();
 					});
 			});

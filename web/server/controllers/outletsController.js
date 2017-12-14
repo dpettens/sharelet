@@ -36,3 +36,31 @@ exports.getData = (req, res, next) => {
         return res.status(200).json(data);
     })
 }
+
+exports.getAlertSettings = (req, res, next) => {
+    let outlet = new Outlet({outlet_id: req.params.id});
+    outlet.getSettings((err, data) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+
+        return res.status(200).json(data);
+    })
+}
+
+exports.updateAlertSettings = (req, res, next) => {
+    let outlet = new Outlet({outlet_id: req.params.id});
+    outlet.updateSettings(req.body, (err, ok) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Update failed. Error with the database.',
+                log: err
+            });
+
+        return res.status(200).end();
+    });
+}

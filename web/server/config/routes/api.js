@@ -42,12 +42,16 @@ router.route('/users/outlets/:id')
 router.route('/outlets/:id/data/:date')
     .get(outletsController.getData)
 
+router.route('/outlets/:id/alerts/settings')
+    .get(outletsController.getAlertSettings)
+    .put(outletsController.updateAlertSettings)
+
 /*
  * Catch 404 and forward to error handler
  */
 
 router.use(function(req, res, next) {
-    next({
+    return next({
         status: 404,
         message: 'Api URL non trouvée :('
     });

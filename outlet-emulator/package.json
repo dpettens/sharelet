@@ -1,0 +1,15 @@
+{
+  "name": "outlet-emulator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "izanagi1995 <nsurleraux@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^2.3.0",
+    "ws": "^3.3.1"
+  }
+}
