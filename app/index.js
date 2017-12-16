@@ -35,7 +35,8 @@ const GET_SETTINGS_END = "'";
 const UPDATE_STATE_BEGIN = "UPDATE outlet_state SET state = ";
 const UPDATE_STATE_MIDDLE = " WHERE outlet_id = '";
 const UPDATE_STATE_END = "'";
-
+const SELECT_MAIL_BEGIN = "SELECT email FROM users WHERE outlets CONTAINS '";
+const SELECT_MAIL_END = "' ALLOW FILTERING";
 /*
  * Nodemailer config
  */
@@ -43,7 +44,6 @@ const transporter = nodemailer.createTransport(
   config.smtp,
   {
     from : 'sharelet.noreply@gmail.com',
-    to : 'nsurleraux@gmail.com',
     subject: 'Alert'
   }
 );
@@ -93,12 +93,21 @@ wsFromClients.on('connection', ws => {
           let alerts = wsClients[outlet.outlet_id].alerts;
 
           if(alerts && (value < alerts.low || value > alerts.high)) {
-            transporter.sendMail({
-              text: "Alert on " + outlet.outlet_id + " value " + value
-            }, error => {
-              if(error) {
-                console.log("ws Clients Mail : ", error);
-                process.exit(-1);
+            client.execute(SELECT_MAIL_BEGIN + outlet.outlet_id + SELECT_MAIL_END).then((err, res) => {
+              if(err){
+                console.log("ERROR SELECT MAIL", err);
+              }else if(res.rows.length > 0){
+                let destination = res.rows[0].email;
+                if(destination){
+                  transporter.sendMail({
+                    to: destination,
+                    text: "Alert on "+outlet.outlet_id+" value " + value
+                  }, error => {
+                    if(error){
+                      console.log("Sending mail error", error.message);
+                    }
+                  });
+                }
               }
             });
           }
