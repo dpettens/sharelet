@@ -1,13 +1,17 @@
 {
-  "name": "outlet-emulator",
-  "version": "1.0.0",
-  "description": "",
+  "name": "sharelet-outlet-emulator",
+  "version": "0.9.0",
+  "description": "Outlet emulator of the Sharelet project",
+  "author": "izanagi1995 <nsurleraux@gmail.com>",
+  "private": true,
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "author": "izanagi1995 <nsurleraux@gmail.com>",
-  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/syvido/projet-integration"
+  },
   "dependencies": {
     "chalk": "^2.3.0",
     "ws": "^3.3.1"
