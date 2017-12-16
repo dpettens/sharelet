@@ -12,13 +12,9 @@ exports.database = {
 };
 
 exports.smtp = {
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: "sharelet.noreply@gmail.com",
-    pass: "p4vXakN3"
-  }
+  host: '127.0.0.1',
+  port: 1025,
+  ignoreTLS: true
 };
 
 exports.wsFromAPI = {
