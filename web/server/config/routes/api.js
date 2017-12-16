@@ -26,9 +26,9 @@ router.route('/authenticate')
 
 router.route('/users')
     .post(usersController.addUser)
-    .get(usersController.get)
-    .put(usersController.update)
-    .delete(usersController.delete);
+    .get(usersController.getUser)
+    .put(usersController.updateUser)
+    .delete(usersController.deleteUser);
 
 router.route('/users/outlets')
     .get(usersController.getOutlets)
@@ -62,9 +62,9 @@ router.use(function(req, res, next) {
  */
 
 router.use(function(err, req, res, next) {
-    if(err.status <= 100 && err.stats > 600) 
+    if(err.status <= 100 && err.status > 600)
         err.status = 500;
-    
+
     if(req.app.get('env') === 'production')
         delete err.log;
 

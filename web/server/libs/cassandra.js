@@ -18,10 +18,10 @@ const cassAuth = new cassandra.auth.PlainTextAuthProvider(
     config.database.password
 );
 
-const client   = new cassandra.Client({ 
-    contactPoints: config.database.contactPoints, 
-    keyspace:      config.database.keyspace, 
-    authProvider : cassAuth 
+const client   = new cassandra.Client({
+    contactPoints: config.database.contactPoints,
+    keyspace:      config.database.keyspace,
+    authProvider : cassAuth
 });
 
 /**
@@ -29,8 +29,8 @@ const client   = new cassandra.Client({
  * @public
  */
 
-exports.getConnection = (next) => {
-    client.connect((error) => {
+exports.getConnection = next => {
+    client.connect(error => {
         if (error)
             next(error);
 

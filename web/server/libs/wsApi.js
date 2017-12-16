@@ -3,15 +3,18 @@ const config    = require('../config/env');
 
 let singletonWS = null;
 
-module.exports =  getInstance = (next) => {
-	if(singletonWS == null) {
-		try {
-			singletonWS = new WebSocket(config.ws.appEndpoint);
-		}
-		catch(error) {
-			next(error);
-		}
-  }
-
-	next(null, singletonWS);
+exports.getInstance = next => {
+    if(singletonWS == null) {
+        try {
+            singletonWS = new WebSocket(config.ws.appEndpoint);
+            singletonWS.on('open', () => {
+                return next(null, singletonWS);
+            });
+        }
+        catch(error) {
+            next(error);
+        }
+   } else {
+        return next(null, singletonWS);
+    }
 };

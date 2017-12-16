@@ -31,6 +31,13 @@ const wsApi           = require('../libs/wsApi');
  */
 
 exports.authenticate = (req, res, next) => {
+    if(!req.body.email || !req.body.password) {
+        return next({
+            status: 400,
+            message: 'Missing fields email or password.',
+        });
+    }
+
     UserCredentials.findByEmail(req.body.email, [
         'userid',
         'email',
@@ -68,6 +75,34 @@ exports.authenticate = (req, res, next) => {
                 token: token
             });
         });
+    });
+}
+
+/**
+ * Get user profile
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.getUser = (req, res, next) => {
+    User.findByUserID(req.key, [], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Fetch failed. Error with the database.',
+                log: err
+            });
+
+        res.json(user);
     });
 }
 
@@ -143,7 +178,94 @@ exports.addUser = (req, res, next) => {
 }
 
 /**
- * Get an outlet to an account
+ * Update the user first name and last name
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.updateUser = (req, res, next) => {
+    User.findByUserID(req.key, [], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Error with the database.',
+                log: err
+            });
+
+        user.lastname = req.body.lastname;
+        user.firstname = req.body.firstname;
+
+        user.update((err) => {
+            if(err)
+                return next({
+                    status: 500,
+                    message: 'Error with the database.',
+                    log: err
+                });
+
+            res.status(200).end();
+        });
+    });
+}
+
+/**
+ * Delete the current user
+ *
+ * Options:
+ *
+ *   - `req`  Express request object
+ *   - `res`  Express response object
+ *   - `next` next middelware to call
+ *
+ * @param {object} req
+ * @param {object} res
+ * @param {function} next
+ * @public
+ */
+
+exports.deleteUser = (req, res, next) => {
+    User.findByUserID(req.key, [], (err, user) => {
+        if (err)
+            return next({
+                status: 500,
+                message: 'Error with the database.',
+                log: err
+            });
+
+        user.delete((error) => {
+            if(error)
+                return next({
+                    status: 500,
+                    message: 'Error with the database while deleting user.',
+                    log: error
+                });
+
+            let synthetic_userCreds = new UserCredentials({email : user.email});
+            synthetic_userCreds.delete((error) => {
+                if(error)
+                    return next({
+                        status: 500,
+                        message: 'Error with the database while deleting usercreds.',
+                        log: error
+                    });
+
+                res.status(200).end();
+            });
+        });
+    });
+}
+
+/**
+ * Get outlets of an account
  *
  * Options:
  *
@@ -169,7 +291,7 @@ exports.getOutlets = (req, res, next) => {
         let doneCnt = 0;
         let result = [];
 
-        if(user.outlets == null){
+        if(user.outlets == null) {
             return res.json([]);
         }
 
@@ -186,7 +308,7 @@ exports.getOutlets = (req, res, next) => {
                 model.getState((error, state) => {
                     doneCnt++;
                     result.push({id: outlet, alias: (alias != null && alias.alias != null) ? alias.alias : null, state : state});
-                
+
                     if(doneCnt == user.outlets.length)
                         return res.status(200).json(result);
                 });
@@ -324,7 +446,9 @@ exports.updateOutlet = (req, res, next) => {
  */
 
 exports.deleteOutlet = (req, res, next) => {
+    console.log("bon");
     User.findByUserID(req.key, [], (err, user) => {
+        console.log("1 ", err);
         if (err)
             return next({
                 status: 500,
@@ -333,6 +457,7 @@ exports.deleteOutlet = (req, res, next) => {
             });
 
         user.deleteOutlet(req.params.id, (error, done) => {
+            console.log("2 ", error);
             if(error)
                 return next({
                     status: 500,
@@ -346,7 +471,7 @@ exports.deleteOutlet = (req, res, next) => {
 }
 
 /**
- * Delete the current user
+ * Send ON/OFF to the outlet
  *
  * Options:
  *
@@ -359,106 +484,6 @@ exports.deleteOutlet = (req, res, next) => {
  * @param {function} next
  * @public
  */
-
-exports.delete = (req, res, next) => {
-    User.findByUserID(req.key, [], (err, user) => {
-        if (err)
-            return next({
-                status: 500,
-                message: 'Error with the database.',
-                log: err
-            });
-
-        user.delete((error) => {
-            if(error)
-                return next({
-                    status: 500,
-                    message: 'Error with the database while deleting user.',
-                    log: error
-                });
-
-            let synthetic_userCreds = new UserCredentials({email : user.email});
-            synthetic_userCreds.delete((error) => {
-                if(error)
-                    return next({
-                        status: 500,
-                        message: 'Error with the database while deleting usercreds.',
-                        log: error
-                    });
-
-                res.status(200).end();
-            });
-        });
-    });
-}
-
-/**
- * Update the user first name and last name
- *
- * Options:
- *
- *   - `req`  Express request object
- *   - `res`  Express response object
- *   - `next` next middelware to call
- *
- * @param {object} req
- * @param {object} res
- * @param {function} next
- * @public
- */
-
-exports.update = (req, res, next) => {
-    User.findByUserID(req.key, [], (err, user) => {
-        if (err)
-            return next({
-                status: 500,
-                message: 'Error with the database.',
-                log: err
-            });
-
-        user.lastname = req.body.lastname;
-        user.firstname = req.body.firstname;
-
-        user.update((err) => {
-            if(err)
-                return next({
-                    status: 500,
-                    message: 'Error with the database.',
-                    log: err
-                });
-
-            res.status(200).end();
-        });
-    });
-}
-
-/**
- * Get user profile
- *
- * Options:
- *
- *   - `req`  Express request object
- *   - `res`  Express response object
- *   - `next` next middelware to call
- *
- * @param {object} req
- * @param {object} res
- * @param {function} next
- * @public
- */
-
-exports.get = (req, res, next) => {
-    User.findByUserID(req.key, [], (err, user) => {
-        if (err)
-            return next({
-                status: 500,
-                message: 'Fetch failed. Error with the database.',
-                log: err
-            });
-
-        res.json(user);
-    });
-}
 
 exports.sendCmd = (req, res, next) => {
     User.findByUserID(req.key, ['outlets'], (err, user) => {

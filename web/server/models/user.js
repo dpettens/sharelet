@@ -92,7 +92,7 @@ class User {
             if (error)
                 return next(error);
 
-            const DELETE_OUTLET_CQL = "UPDATE users SET outlets = outlets - '" + outlet_id + "' WHERE userid = '" + this.userid + "'";
+            const DELETE_OUTLET_CQL = "UPDATE users SET outlets = outlets - {'" + outlet_id + "'} WHERE userid = " + this.userid;
             client.execute(DELETE_OUTLET_CQL, (error, results) => {
                 if (error)
                     return next(error);
