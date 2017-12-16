@@ -56,7 +56,7 @@ const onMessage = message => {
     const json = JSON.parse(message);
 
     if(json.type && json.type === 0) {
-      outlet_emu.relais = json.closed;
+      outlet_emu.relais = json.close;
 
       if(json.closed)
         updateMsg();
