@@ -31,6 +31,13 @@ const wsApi           = require('../libs/wsApi');
  */
 
 exports.authenticate = (req, res, next) => {
+    if(!req.body.email || !req.body.password) {
+        return next({
+            status: 400,
+            message: 'Missing fields email or password.',
+        });
+    }
+
     UserCredentials.findByEmail(req.body.email, [
         'userid',
         'email',
