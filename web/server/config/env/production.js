@@ -13,7 +13,7 @@ exports.database = {
 };
 
 exports.ws = {
-    appEndpoint : '192.168.2.8'
+    appEndpoint : 'ws://192.168.2.8:3001'
 };
 
 exports.server = {
