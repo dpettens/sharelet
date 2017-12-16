@@ -7,11 +7,14 @@ exports.getInstance = next => {
     if(singletonWS == null) {
         try {
             singletonWS = new WebSocket(config.ws.appEndpoint);
+            singletonWS.on('open', () => {
+                return next(null, singletonWS);
+            });
         }
         catch(error) {
             next(error);
         }
-  }
-
-    next(null, singletonWS);
+   } else {
+        return next(null, singletonWS);
+    }
 };
