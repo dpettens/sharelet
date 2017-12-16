@@ -18,7 +18,8 @@ exports.smtp = {
 };
 
 exports.wsFromAPI = {
-  port : '3001'
+  host: '127.0.0.1',
+  port: '3001'
 };
 
 exports.wsFromClients = {
