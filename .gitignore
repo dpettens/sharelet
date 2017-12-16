@@ -239,5 +239,8 @@ $RECYCLE.BIN/
 
 ### Specific projet rules ###
 
+# PM2 config
+ecosystem.config.js
+
 # build react app folder
 web/client/build
