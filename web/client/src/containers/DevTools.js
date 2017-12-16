@@ -4,7 +4,7 @@ import DockMonitor from 'redux-devtools-dock-monitor';
 import LogMonitor from 'redux-devtools-log-monitor';
 
 const DevTools = createDevTools(
-  <DockMonitor changePositionKey="ctrl-d" toggleVisibilityKey="ctrl-h">
+  <DockMonitor changePositionKey="ctrl-d" toggleVisibilityKey="ctrl-i">
     <LogMonitor />
   </DockMonitor>
 );

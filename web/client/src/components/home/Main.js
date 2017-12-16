@@ -11,7 +11,6 @@ import Contact from './Contact';
 import Outlet from './Outlet';
 import Service from './Service';
 import SectionsControllers from './SectionsControllers';
-import Alert from '../Alert';
 
 const styles = theme => ({
   center: {
@@ -56,7 +55,7 @@ class Main extends Component {
   };
 
   render = () => {
-    const { authenticated, classes, infoMessage } = this.props;
+    const { authenticated, classes } = this.props;
     const { current } = this.state;
 
     return (
@@ -76,8 +75,6 @@ class Main extends Component {
           onPrev={() => this.setState({current: current - 1})}
           sectionsCount={this.options.anchors.length}
         />
-
-        {infoMessage && <Alert text={infoMessage} type="info" />}
       </div>
     );
   };
@@ -86,7 +83,6 @@ class Main extends Component {
 Main.propTypes = {
   authenticated: PropTypes.bool.isRequired,
   classes: PropTypes.object.isRequired,
-  infoMessage: PropTypes.string,
   location: PropTypes.object.isRequired
 };
 

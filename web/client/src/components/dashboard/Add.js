@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { reduxForm, Field } from 'redux-form';
+import { reduxForm, Field, destroy } from 'redux-form';
 import { TextField } from 'redux-form-material-ui';
 import { withStyles } from 'material-ui/styles';
 import { FormControl } from 'material-ui/Form';
@@ -129,6 +129,11 @@ class Add extends Component {
                 onClick={() => {
                   handleSubmit();
                   this.handleRequestClose();
+
+                  // Fix a bug with DESTROY action's redux-form
+                  // After submit the form, redux-from doesn't call DESTROY action
+                  // So we need to send the action manually
+                  this.props.dispatch(destroy('addOutlet'));
                 }}
               >
                 Envoyer
@@ -146,6 +151,7 @@ class Add extends Component {
 //TODO: PropTypes redux-form
 Add.propTypes = {
   className: PropTypes.string.isRequired,
+  classes: PropTypes.object.isRequired,
   fullScreen: PropTypes.bool.isRequired
 };
 
