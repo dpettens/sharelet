@@ -4,6 +4,7 @@ exports.app = {
   salt : process.env.SALT,
 };
 
+
 exports.database = {
   contactPoints : ['192.168.2.5', '192.168.2.6', '192.168.2.7'],
   keyspace: 'sharelet',

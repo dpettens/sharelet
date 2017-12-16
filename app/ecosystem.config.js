@@ -6,6 +6,7 @@ module.exports = {
         watch: true,
         env: {
             "NODE_ENV": "production",
+            "SALT" : "auth-sharelet",
         }
      }
   ]
