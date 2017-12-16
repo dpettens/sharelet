@@ -1,85 +1,143 @@
-const crypto = require('crypto');
-const WebSocket = require('ws');
+'use strict';
+
+/**
+ * Module dependencies.
+ * @private
+ */
+
 const cassandra = require('cassandra-driver');
+const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const ws = require('ws');
 
-const cass_auth = new cassandra.auth.PlainTextAuthProvider('cassandra','cassandra');
-const client = new cassandra.Client({ contactPoints: ['192.168.2.5', '192.168.2.6', '192.168.2.7'], keyspace: 'sharelet_dev', authProvider : cass_auth });
+const config = require('./config');
 
-const SALT = "auth-sharelet";
+/*
+ * Cassandra config
+ */
+const cass_auth = new cassandra.auth.PlainTextAuthProvider(
+  config.database.username,
+  config.database.password
+);
+
+const client = new cassandra.Client({
+  contactPoints: config.database.contactPoints,
+  keyspace: config.database.keyspace,
+  authProvider : cass_auth
+});
+
+/*
+ * Cassandra requests
+ */
 const INSERT_DATA_CQL = "INSERT INTO consumption_by_day (outlet_id, date, event_time, sensor_type, sensor_value) VALUES (?, ?, ?, ?, ?)";
 const GET_SETTINGS_START = "SELECT * FROM outlets_alert WHERE outlet_id = '";
 const GET_SETTINGS_END = "'";
-const UPDATE_STATE = "UPDATE outlet_state SET state = ";
-const UPDATE_STATE2 = " WHERE outlet_id = '";
-const UPDATE_STATE3 = "'";
+const UPDATE_STATE_BEGIN = "UPDATE outlet_state SET state = ";
+const UPDATE_STATE_MIDDLE = " WHERE outlet_id = '";
+const UPDATE_STATE_END = "'";
 
-const smtpSettings = {
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: "sharelet.noreply@gmail.com",
-    pass: "p4vXakN3"
+/*
+ * Nodemailer config
+ */
+const transporter = nodemailer.createTransport(
+  config.smtp,
+  {
+    from : 'sharelet.noreply@gmail.com',
+    to : 'nsurleraux@gmail.com',
+    subject: 'Alert'
   }
-}
+);
 
-let transporter = nodemailer.createTransport(smtpSettings, {from : 'sharelet.noreply@gmail.com', to : 'nsurleraux@gmail.com', subject: 'Alert'});
-transporter.verify(function(err, ok){
-  if(err) console.log(err);
-  else console.log("SMTP OK");
+transporter.verify(error => {
+  if(error) {
+    console.log("Nodemailer config : ", error);
+    process.exit(-1);
+  }
 });
 
-const wss = new WebSocket.Server({ port: 3000 });
-const wssFromAPI = new WebSocket.Server({ port: 3001 });
+/*
+ * Websockets config
+ */
+const wsFromClients = new ws.Server(config.wsFromClients);
+const wsFromAPI = new ws.Server(config.wsFromAPI);
+let wsClients = {};
 
-const wsClients = {};
+wsFromClients.on('connection', ws => {
+  ws.on('message', message => {
+    try {
+      const outlet = JSON.parse(message);
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message){
-    var data = JSON.parse(message);
-    var md5hash = crypto.createHash('md5').update(data.outlet_id).digest('base64');
-    var hash = crypto.createHash('sha256').update(SALT+md5hash+SALT).digest('base64');
-    var date = new Date(data.timestamp*1000);
-    var date_str = date.getDate()+'-'+date.getMonth()+'-'+date.getFullYear();
-    if(hash == data.pwd){
-      if(!wsClients.hasOwnProperty(data.outlet_id) || wsClients[data.outlet_id] != ws){
-        wsClients[data.outlet_id] = ws;
-        client.execute(GET_SETTINGS_START+data.outlet_id+GET_SETTINGS_END).then(function(res){
-          console.log("Get alerts CB", res.rows);
-          if(res.rows.length !== 0){
-            wsClients[data.outlet_id].alerts = res.rows[0];
-          }
-        });
-      }
-      for(var i in data.data){
-        client.execute(INSERT_DATA_CQL, [data.outlet_id, date_str, date, data.data[i].sensor_type, data.data[i].value], {prepare: true}).then(function(res){ws.send("{'res' : 'OK'}");});
-        let val = data.data[i].value;
-        let alerts = wsClients[data.outlet_id].alerts;
-        console.log(alerts);
-        if(alerts && (val < alerts.low || val > alerts.high)){
-          console.log("We have an alert here");
-          transporter.sendMail({text: "Alert on "+data.outlet_id+" value "+val}, function(err, res){});
+      // Check password of the outlet
+      const md5Hash = crypto.createHash('md5').update(outlet.outlet_id).digest('base64');
+      const hash = crypto.createHash('sha256').update(config.app.salt + md5Hash + config.app.salt).digest('base64');
+
+      if(hash === outlet.pwd) {
+        if(!wsClients.hasOwnProperty(outlet.outlet_id) || wsClients[outlet.outlet_id] != ws) {
+          wsClients[outlet.outlet_id] = ws;
+
+          client.execute(GET_SETTINGS_START + outlet.outlet_id + GET_SETTINGS_END).then(res => {
+            if(res.rows.length !== 0)
+              wsClients[outlet.outlet_id].alerts = res.rows[0];
+          });
         }
+
+        const date = new Date(outlet.timestamp * 1000);
+        const date_str = date.getDate() + '-' + date.getMonth() + '-' + date.getFullYear();
+
+        for(let i in outlet.data) {
+          client.execute(INSERT_DATA_CQL, [outlet.outlet_id, date_str, date, outlet.data[i].sensor_type, outlet.data[i].value], {prepare: true}).then(res => {
+            ws.send(JSON.stringify({res : "OK"}));
+          });
+
+          let value = outlet.data[i].value;
+          let alerts = wsClients[outlet.outlet_id].alerts;
+
+          if(alerts && (value < alerts.low || value > alerts.high)) {
+            transporter.sendMail({
+              text: "Alert on " + outlet.outlet_id + " value " + value
+            }, error => {
+              if(error) {
+                console.log("ws Clients Mail : ", error);
+                process.exit(-1);
+              }
+            });
+          }
+        }
+      } else {
+        ws.send(JSON.stringify({res : "NOK"}));
       }
-    }else{
-      ws.send("{'res' : 'NOK'}");
+    } catch(e) {
+      console.log("ws Clients JSON : ", e.message);
+      process.exit(-1);
     }
   });
 });
 
-wssFromAPI.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message){
-    var data = JSON.parse(message);
-    if(data.type == 0){ //ON OFF
-      var connection = wsClients[data.target];
-      if(typeof connection !== 'undefined'){
-        connection.send(JSON.stringify({type : 0, close : data.power}));
-        client.execute(UPDATE_STATE + data.power + UPDATE_STATE2 + data.target + UPDATE_STATE3, (err, nothing) => {});
-        ws.send({"type" : 4, "ok" : true, "target" : data.target});
-      }else{
-        ws.send({"type" : 4, "ok" : false, "target" : data.target});
+wsFromAPI.on('connection', ws => {
+  ws.on('message', message => {
+    try {
+      const data = JSON.parse(message);
+
+      if(data.type === 0) {
+        const connection = wsClients[data.target];
+
+        if(typeof connection !== 'undefined') {
+          connection.send(JSON.stringify({type : 0, close : data.power}));
+          client.execute(UPDATE_STATE_BEGIN + data.power + UPDATE_STATE_MIDDLE + data.target + UPDATE_STATE_END, error => {
+            if(error) {
+              console.log("ws API cassandra : ", error);
+              process.exit(-1);
+            }
+          });
+
+          ws.send({"type" : 4, "ok" : true, "target" : data.target});
+        } else {
+          ws.send({"type" : 4, "ok" : false, "target" : data.target});
+        }
       }
+    } catch(e) {
+      console.log("ws API JSON : " ,e.message);
+      process.exit(-1);
     }
   });
 });
