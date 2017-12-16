@@ -125,23 +125,20 @@ wsFromAPI.on('connection', ws => {
   ws.on('message', message => {
     try {
       const data = JSON.parse(message);
+      const connection = wsClients[data.target];
 
-      if(true) {
-        const connection = wsClients[data.target];
+      if(typeof connection !== 'undefined') {
+        connection.send(JSON.stringify({type : 0, close : data.power}));
+        client.execute(UPDATE_STATE_BEGIN + data.power + UPDATE_STATE_MIDDLE + data.target + UPDATE_STATE_END, error => {
+          if(error) {
+            console.log("ws API cassandra : ", error);
+            process.exit(-1);
+          }
+        });
 
-        if(typeof connection !== 'undefined') {
-          connection.send(JSON.stringify({type : 0, close : data.power}));
-          client.execute(UPDATE_STATE_BEGIN + data.power + UPDATE_STATE_MIDDLE + data.target + UPDATE_STATE_END, error => {
-            if(error) {
-              console.log("ws API cassandra : ", error);
-              process.exit(-1);
-            }
-          });
-
-          ws.send(JSON.stringify({"type" : 4, "ok" : true, "target" : data.target}));
-        } else {
-          ws.send(JSON.stringify({"type" : 4, "ok" : false, "target" : data.target}));
-        }
+        ws.send(JSON.stringify({"type" : 4, "ok" : true, "target" : data.target}));
+      } else {
+        ws.send(JSON.stringify({"type" : 4, "ok" : false, "target" : data.target}));
       }
     } catch(e) {
       console.log("ws API JSON : " ,e);
