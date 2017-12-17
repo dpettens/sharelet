@@ -1,11 +1,13 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { reduxForm, Field, destroy } from 'redux-form';
+import { reduxForm, Field, change } from 'redux-form';
 import { TextField } from 'redux-form-material-ui';
 import { withStyles } from 'material-ui/styles';
 import { FormControl } from 'material-ui/Form';
 import { CircularProgress } from 'material-ui/Progress';
 import Button from 'material-ui/Button';
+import IconButton from 'material-ui/IconButton';
+import Tooltip from 'material-ui/Tooltip';
 import Dialog, {
   DialogActions,
   DialogContent,
@@ -13,8 +15,8 @@ import Dialog, {
   DialogTitle,
   withMobileDialog
 } from 'material-ui/Dialog';
-import AddIcon from 'material-ui-icons/Add';
 import SendIcon from 'material-ui-icons/Send';
+import EditIcon from 'material-ui-icons/Edit';
 
 const styles = theme => ({
   button: {
@@ -36,16 +38,13 @@ const styles = theme => ({
 const validate = values => {
   let errors = {};
 
-  if (!values.outlet_id)
-    errors.outlet_id = 'L\'ID de la prise est requis.';
-
-  if (!values.pwd)
-    errors.pwd = 'Le mot de passe est requis.';
+  if (!values.alias)
+    errors.alias = 'Le nom de la prise est requis.';
 
   return errors;
 };
 
-class Add extends Component {
+class Update extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -57,6 +56,12 @@ class Add extends Component {
     this.setState({
       isDialogOpen: true
     });
+
+    // Fix a bug with initialValues and INITIALIZE and DESTROY actions's redux-form
+    // After submit the form, redux-from call DESTROY action
+    // But when we open again the dialog redux-form doesn't recall INITIALIZE
+    // So the fields doesn't have the new values from initialValues
+    this.props.dispatch(change('updateOutlet', 'alias', this.props.initialValues.alias));
   };
 
   handleRequestClose = () => {
@@ -66,49 +71,36 @@ class Add extends Component {
   };
 
   render() {
-    const { classes, className, fullScreen, handleSubmit, invalid, submitting, pristine , reset } = this.props;
-
+    const { classes, fullScreen, handleSubmit, id, invalid, initialValues, submitting, pristine, reset } = this.props;
+    const isAlias = initialValues.alias !== undefined;
     return (
       <div>
-        <Button
-          aria-label="Add"
-          className={className}
-          color="accent"
-          fab
-          onClick={this.handleClickOpen}
-        >
-          <AddIcon />
-        </Button>
+        <Tooltip placement="bottom" title="Éditer le nom de la prise">
+          <IconButton aria-label="Éditer le nom de la prise" onClick={this.handleClickOpen}>
+            <EditIcon />
+          </IconButton>
+        </Tooltip>
 
         <Dialog
           fullScreen={fullScreen}
           open={this.state.isDialogOpen}
           onRequestClose={this.handleRequestClose}
         >
-          <DialogTitle>Ajouter une prise</DialogTitle>
+          <DialogTitle>{(!isAlias) ? "Ajouter un nom à la prise" : "Éditer le nom de la prise"} <em>{id}</em></DialogTitle>
           <DialogContent>
             <DialogContentText>
-              L'ID et le mot de passe de la prise se trouvent au dos du boitier que vous venez de brancher.
+              Ajouter un nom à la prise vous permet de plus facilement la reconnaître.
             </DialogContentText>
             <FormControl fullWidth>
               <Field
                 autoFocus
                 component={TextField}
-                label="ID de la prise"
+                label="Nom de la prise"
                 margin="normal"
-                name="outlet_id"
-                placeholder="ID de la prise"
+                name="alias"
+                placeholder="Nom de la prise"
                 type="text"
-              />
-            </FormControl>
-            <FormControl fullWidth>
-              <Field
-                component={TextField}
-                label="Mot de passe"
-                margin="normal"
-                name="pwd"
-                placeholder="Mot de passe"
-                type="text"
+                value=""
               />
             </FormControl>
           </DialogContent>
@@ -129,11 +121,6 @@ class Add extends Component {
                 onClick={() => {
                   handleSubmit();
                   this.handleRequestClose();
-
-                  // Fix a bug with DESTROY action's redux-form
-                  // After submit the form, redux-from doesn't call DESTROY action
-                  // So we need to send the action manually
-                  this.props.dispatch(destroy('addOutlet'));
                 }}
               >
                 Envoyer
@@ -149,13 +136,14 @@ class Add extends Component {
 }
 
 //TODO: PropTypes redux-form
-Add.propTypes = {
-  className: PropTypes.string.isRequired,
+Update.propTypes = {
   classes: PropTypes.object.isRequired,
-  fullScreen: PropTypes.bool.isRequired
+  fullScreen: PropTypes.bool.isRequired,
+  id: PropTypes.string.isRequired,
+  initialValues: PropTypes.object.isRequired
 };
 
 export default reduxForm({
-  form: 'addOutlet',
+  form: 'updateOutlet',
   validate
-})(withStyles(styles)(withMobileDialog()(Add)));
+})(withStyles(styles)(withMobileDialog()(Update)));

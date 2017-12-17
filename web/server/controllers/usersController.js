@@ -344,10 +344,6 @@ exports.addOutlet = (req, res, next) => {
     const md5hash = crypto.createHash('md5').update(req.body.outlet_id).digest('base64');
     const hash = crypto.createHash('sha256').update(config.app.salt + md5hash + config.app.salt).digest('base64');
     const pwd = hash.substring(0, 5);
-    console.log(req.body.outlet_id, config.app.salt, pwd);
-
-    console.log(hash);
-    console.log(pwd);
 
     if(req.body.pwd == pwd)
     {
@@ -446,9 +442,7 @@ exports.updateOutlet = (req, res, next) => {
  */
 
 exports.deleteOutlet = (req, res, next) => {
-    console.log("bon");
     User.findByUserID(req.key, [], (err, user) => {
-        console.log("1 ", err);
         if (err)
             return next({
                 status: 500,
@@ -457,7 +451,6 @@ exports.deleteOutlet = (req, res, next) => {
             });
 
         user.deleteOutlet(req.params.id, (error, done) => {
-            console.log("2 ", error);
             if(error)
                 return next({
                     status: 500,
@@ -506,6 +499,7 @@ exports.sendCmd = (req, res, next) => {
                     });
                 }
 
+                req.body.type = 0;
                 req.body.target = req.params.id;
                 connexion.send(JSON.stringify(req.body));
                 connexion.on('message', message => {

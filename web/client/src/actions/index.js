@@ -10,41 +10,59 @@ let httpClientConfig = {
   }
 };
 
-export const SIGN_IN_SUCCESS            = 'SIGN_IN_SUCCESS';
-export const SIGN_IN_ERROR              = 'SIGN_IN_ERROR';
-export const SIGN_OUT_SUCCESS           = 'SIGN_OUT_SUCCESS';
-export const SIGN_OUT_ERROR             = 'SIGN_OUT_ERROR';
-export const SIGN_UP_SUCCESS            = 'SIGN_UP_SUCCESS';
-export const SIGN_UP_ERROR              = 'SIGN_UP_ERROR';
-export const SIGN_ERROR_MESSAGE_CLEAR   = 'SIGN_ERROR_MESSAGE_CLEAR';
-export const SIGN_INFO_MESSAGE_CLEAR    = 'SIGN_INFO_MESSAGE_CLEAR';
+export const ALERT_MESSAGE_INFO          = 'ALERT_MESSAGE_INFO';
+export const ALERT_MESSAGE_ERROR         = 'ALERT_MESSAGE_ERROR';
+export const ALERT_MESSAGE_CLEAR         = 'ALERT_MESSAGE_CLEAR';
 
-export const ADD_OUTLET_SUCCESS         = 'ADD_OUTLET_SUCCESS';
-export const ADD_OUTLET_ERROR           = 'ADD_OUTLET_ERROR';
+export const AUTHENTICATED               = 'AUTHENTICATED';
+export const NOT_AUTHENTICATED           = 'NOT_AUTHENTICATED';
+
+export const SIGN_IN_SUCCESS             = 'SIGN_IN_SUCCESS';
+export const SIGN_OUT_SUCCESS            = 'SIGN_OUT_SUCCESS';
+
+export const GET_USER_SUCCESS            = 'GET_USER_SUCCESS';
+
+export const ADD_OUTLET_SUCCESS          = 'ADD_OUTLET_SUCCESS';
+export const CHANGE_STATE_OUTLET_SUCCESS = 'CHANGE_STATE_OUTLET_SUCCESS';
+export const DELETE_OUTLET_SUCCESS       = 'DELETE_OUTLET_SUCCESS';
+export const UPDATE_OUTLET_SUCCESS       = 'UPDATE_OUTLET_SUCCESS';
+export const GET_OUTLETS_SUCCESS         = 'GET_OUTLETS_SUCCESS';
+
+/*
+ * Alert actions
+ */
+
+export const alertMessageInfo = message => ({
+  type: ALERT_MESSAGE_INFO,
+  payload: message
+});
+
+export const alertMessageError = message => ({
+  type: ALERT_MESSAGE_ERROR,
+  payload: message
+});
+
+export const alertMessageClear = () => ({
+  type: ALERT_MESSAGE_CLEAR
+});
 
 /*
  * Auth actions
  */
 
-// Clear error message
-export const signErrorMessageClear = () => ({
-  type: SIGN_ERROR_MESSAGE_CLEAR
+// The user has a token in his localStorage, so set to true authenticated value of redux
+export const authenticated = () => ({
+  type: AUTHENTICATED
 });
 
-// Clear info message
-export const signInfoMessageClear = () => ({
-  type: SIGN_INFO_MESSAGE_CLEAR
+// The user hasn't a token in his localStorage, so set to false authenticated value of redux
+export const notAuthenticated = () => ({
+  type: NOT_AUTHENTICATED
 });
 
 // SignIn
-export const signInSuccess = message => ({
-  type: SIGN_IN_SUCCESS,
-  payload: message
-});
-
-export const signInError = error => ({
-  type: SIGN_IN_ERROR,
-  payload: error
+export const signInSuccess = () => ({
+  type: SIGN_IN_SUCCESS
 });
 
 export const signIn = (user, history) => {
@@ -55,28 +73,29 @@ export const signIn = (user, history) => {
         localStorage.setItem('token', response.data.token);
         httpClientConfig.headers['x-access-token'] = response.data.token;
 
-        dispatch(signInSuccess(`Bonjour, ${user.email} :)`));
-        history.push('/');
+        // Get user account informations
+        dispatch(getUser()).then(() => {
+          // Get outlets
+          dispatch(getOutlets()).then(() => {
+            // Redirect to Dashboard
+            dispatch(signInSuccess());
+            dispatch(alertMessageInfo(`Bonjour, ${user.email} :)`));
+            history.push('/dashboard');
+          });
+        });
       })
       .catch(error => {
-        console.log(error);
         if(error.response.data.message)
-          dispatch(signInError(error.response.data.message));
+          dispatch(alertMessageError(error.response.data.message));
         else
-          dispatch(signInError('Une erreur est survenue lors de la connexion !'));
+          dispatch(alertMessageError('Une erreur est survenue lors de la connexion !'));
       });
   };
 };
 
 // SignOut
-export const signOutSuccess = message => ({
-  type: SIGN_OUT_SUCCESS,
-  payload: message
-});
-
-export const signOutError = error => ({
-  type: SIGN_OUT_ERROR,
-  payload: error
+export const signOutSuccess = () => ({
+  type: SIGN_OUT_SUCCESS
 });
 
 export const signOut = history => {
@@ -85,8 +104,9 @@ export const signOut = history => {
     localStorage.removeItem('token');
     httpClientConfig.headers['x-access-token'] = undefined;
 
-    dispatch(signOutSuccess('Vous avez bien été déconnecté'));
-    history.push('/dashboard');
+    dispatch(signOutSuccess());
+    dispatch(alertMessageInfo('Vous avez bien été déconnecté'));
+    history.push('/');
 
     /* TODO: use jwt-blacklist in server api
       httpClient.post('/unauthenticate')
@@ -95,85 +115,173 @@ export const signOut = history => {
           localStorage.removeItem('token');
           httpClientConfig['x-access-token'] = undefined;
 
-          dispatch(signOutSuccess('Vous avez bien été déconnecté'));
+          dispatch(signOutSuccess());
+          dispatch(alertMessageInfo('Vous avez bien été déconnecté'));
           history.push('/');
         })
         .catch(error => {
           console.log(error);
           if(error.response.data.message)
-            dispatch(signOutError(error.response.data.message));
+            dispatch(alertMessageError(error.response.data.message));
           else
-            dispatch(signOutError('Une erreur est survenue lors de la déconnexion !'));
+            dispatch(alertMessageError('Une erreur est survenue lors de la déconnexion !'));
         });
      */
   };
 };
 
 // SignUp
-export const signUpSuccess = message => ({
-  type: SIGN_UP_SUCCESS,
-  payload: message
-});
-
-export const signUpError = error => ({
-  type: SIGN_UP_ERROR,
-  payload: error
-});
-
 export const signUp = (data, history) => {
   return dispatch => {
     httpClient.post('/users', data)
       .then(() => {
         // Redirect to Sign In Page
-        dispatch(signUpSuccess('Votre compte a bien été créé'));
+        dispatch(alertMessageInfo('Votre compte a bien été créé'));
         history.push('/signin');
       })
       .catch(error => {
         if(error.response.data.message)
-          dispatch(signUpError(error.response.data.message));
+          dispatch(alertMessageError(error.response.data.message));
         else
-          dispatch(signUpError('Une erreur est survenue lors de la création de l\'utilisateur !'));
+          dispatch(alertMessageError('Une erreur est survenue lors de la création de l\'utilisateur !'));
       });
   };
 };
 
 /**
+ * User action
+ */
+
+// Get user informations
+export const getUserSuccess = user => ({
+  type: GET_USER_SUCCESS,
+  payload: user
+});
+
+export const getUser = () => {
+  return dispatch => {
+    return httpClient.get('/users', httpClientConfig)
+      .then(response => {
+        dispatch(getUserSuccess(response.data));
+      })
+      .catch(error => {
+        if(error.response.data.message)
+          dispatch(alertMessageError(error.response.data.message));
+        else
+          dispatch(alertMessageError('Une erreur est survenue lors de la récupération de l\'utilisateur !'));
+      });
+  };
+};
+
+/*
  * Outlet actions
  */
 
-// Add outlet
-export const addOutletSuccess = message => ({
-  type: ADD_OUTLET_SUCCESS,
-  payload: message
+// Get outlets of the user
+export const getOutletsSuccess = outlets => ({
+  type: GET_OUTLETS_SUCCESS,
+  payload: outlets
 });
 
-export const addOutletError = error => ({
-  type: ADD_OUTLET_ERROR,
-  payload: error
-});
-
-export const addOutlet = (outlet) => {
+export const getOutlets = () => {
   return dispatch => {
-    console.log(httpClientConfig.headers['x-access-token']);
-    httpClient.get('/users', httpClientConfig)
+    return httpClient.get('/users/outlets', httpClientConfig)
       .then(response => {
-        console.log(response);
+        dispatch(getOutletsSuccess(response.data));
       })
       .catch(error => {
-        console.log(error);
-      });
-    /*
-    httpClient.post('/users/outlets', outlet, httpClientConfig)
-      .then(response => {
-        dispatch(addOutletSuccess(`La prise a bien été ajoutée.`));
-      })
-      .catch(error => {
-        console.log(error);
         if(error.response.data.message)
-          dispatch(addOutletError(error.response.data.message));
+          dispatch(alertMessageError(error.response.data.message));
         else
-          dispatch(addOutletError('Une erreur est survenue lors de la connexion !'));
+          dispatch(alertMessageError('Une erreur est survenue lors de la récupération des prises !'));
       });
-      */
+  };
+};
+
+// Add outlet
+export const addOutletSuccess = id => ({
+  type: ADD_OUTLET_SUCCESS,
+  payload: id
+});
+
+export const addOutlet = outlet => {
+  return dispatch => {
+    return httpClient.post('/users/outlets', outlet, httpClientConfig)
+      .then(response => {
+        dispatch(addOutletSuccess(outlet.outlet_id));
+        dispatch(alertMessageInfo('La prise a bien été ajoutée.'));
+      })
+      .catch(error => {
+        if(error.response.data.message)
+          dispatch(alertMessageError(error.response.data.message));
+        else
+          dispatch(alertMessageError('Une erreur est survenue lors de l\'ajout de la prise !'));
+      });
+  };
+};
+
+// Update alias outlet
+export const updateOutletSuccess = outlet => ({
+  type: UPDATE_OUTLET_SUCCESS,
+  payload: outlet
+});
+
+export const updateOutlet = outlet => {
+  return dispatch => {
+    return httpClient.put(`/users/outlets/${outlet.id}`, {alias : outlet.alias}, httpClientConfig)
+      .then(response => {
+        dispatch(updateOutletSuccess(outlet));
+        dispatch(alertMessageInfo('La prise a bien été mise à jour.'));
+      })
+      .catch(error => {
+        if(error.response.data.message)
+          dispatch(alertMessageError(error.response.data.message));
+        else
+          dispatch(alertMessageError('Une erreur est survenue lors de la mise à jour de la prise !'));
+      });
+  };
+};
+
+// Delete outlet
+export const deleteOutletSuccess = id => ({
+  type: DELETE_OUTLET_SUCCESS,
+  payload: id
+});
+
+export const deleteOutlet = id => {
+  return dispatch => {
+    return httpClient.delete(`/users/outlets/${id}`, httpClientConfig)
+      .then(response => {
+        dispatch(deleteOutletSuccess(id));
+        dispatch(alertMessageInfo('La prise a bien été supprimée.'));
+      })
+      .catch(error => {
+        if(error.response.data.message)
+          dispatch(alertMessageError(error.response.data.message));
+        else
+          dispatch(alertMessageError('Une erreur est survenue lors de la suppresion de la prise !'));
+      });
+  };
+};
+
+// Delete outlet
+export const changeStateOutletSuccess = id => ({
+  type: CHANGE_STATE_OUTLET_SUCCESS,
+  payload: id
+});
+
+export const changeStateOutlet = outlet => {
+  return dispatch => {
+    return httpClient.post(`/users/outlets/${outlet.id}`, {power: outlet.state}, httpClientConfig)
+      .then(response => {
+        dispatch(changeStateOutletSuccess(outlet.id));
+        dispatch(alertMessageInfo('La prise a bien changé d\'état.'));
+      })
+      .catch(error => {
+        if(error.response.data.message)
+          dispatch(alertMessageError(error.response.data.message));
+        else
+          dispatch(alertMessageError('Une erreur est survenue lors du changement d\'état de la prise !'));
+      });
   };
 };

@@ -64,6 +64,7 @@ let wsClients = {};
 
 wsFromClients.on('connection', ws => {
   ws.on('message', message => {
+    console.log(message);
     try {
       const outlet = JSON.parse(message);
 
@@ -71,9 +72,11 @@ wsFromClients.on('connection', ws => {
       const md5Hash = crypto.createHash('md5').update(outlet.outlet_id).digest('base64');
       const hash = crypto.createHash('sha256').update(config.app.salt + md5Hash + config.app.salt).digest('base64');
 
+
       if(hash === outlet.pwd) {
         if(!wsClients.hasOwnProperty(outlet.outlet_id) || wsClients[outlet.outlet_id] != ws) {
           wsClients[outlet.outlet_id] = ws;
+          console.log("Add outlet", outlet.outlet_id);
 
           client.execute(GET_SETTINGS_START + outlet.outlet_id + GET_SETTINGS_END).then(res => {
             if(res.rows.length !== 0)
@@ -89,14 +92,12 @@ wsFromClients.on('connection', ws => {
             ws.send(JSON.stringify({res : "OK"}));
           });
 
-          let value = outlet.data[i].value;
+          let value = Math.abs(outlet.data[i].value);
           let alerts = wsClients[outlet.outlet_id].alerts;
 
           if(alerts && (value < alerts.low || value > alerts.high)) {
-            client.execute(SELECT_MAIL_BEGIN + outlet.outlet_id + SELECT_MAIL_END).then((err, res) => {
-              if(err){
-                console.log("ERROR SELECT MAIL", err);
-              }else if(res.rows.length > 0){
+            client.execute(SELECT_MAIL_BEGIN + outlet.outlet_id + SELECT_MAIL_END).then((res) => {
+              if(res.rows.length > 0){
                 let destination = res.rows[0].email;
                 if(destination){
                   transporter.sendMail({
@@ -126,26 +127,23 @@ wsFromAPI.on('connection', ws => {
   ws.on('message', message => {
     try {
       const data = JSON.parse(message);
+      const connection = wsClients[data.target];
 
-      if(data.type === 0) {
-        const connection = wsClients[data.target];
+      if(typeof connection !== 'undefined') {
+        connection.send(JSON.stringify({type : 0, close : data.power}));
+        client.execute(UPDATE_STATE_BEGIN + data.power + UPDATE_STATE_MIDDLE + data.target + UPDATE_STATE_END, error => {
+          if(error) {
+            console.log("ws API cassandra : ", error);
+            process.exit(-1);
+          }
+        });
 
-        if(typeof connection !== 'undefined') {
-          connection.send(JSON.stringify({type : 0, close : data.power}));
-          client.execute(UPDATE_STATE_BEGIN + data.power + UPDATE_STATE_MIDDLE + data.target + UPDATE_STATE_END, error => {
-            if(error) {
-              console.log("ws API cassandra : ", error);
-              process.exit(-1);
-            }
-          });
-
-          ws.send({"type" : 4, "ok" : true, "target" : data.target});
-        } else {
-          ws.send({"type" : 4, "ok" : false, "target" : data.target});
-        }
+        ws.send(JSON.stringify({"type" : 4, "ok" : true, "target" : data.target}));
+      } else {
+        ws.send(JSON.stringify({"type" : 4, "ok" : false, "target" : data.target}));
       }
     } catch(e) {
-      console.log("ws API JSON : " ,e.message);
+      console.log("ws API JSON : " ,e);
       process.exit(-1);
     }
   });
