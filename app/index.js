@@ -61,6 +61,7 @@ transporter.verify(error => {
 const wsFromClients = new ws.Server(config.wsFromClients);
 const wsFromAPI = new ws.Server(config.wsFromAPI);
 let wsClients = {};
+let alertTime = {};
 
 wsFromClients.on('connection', ws => {
   ws.on('message', message => {
@@ -76,6 +77,7 @@ wsFromClients.on('connection', ws => {
       if(hash === outlet.pwd) {
         if(!wsClients.hasOwnProperty(outlet.outlet_id) || wsClients[outlet.outlet_id] != ws) {
           wsClients[outlet.outlet_id] = ws;
+          alertTime[outlet.outlet_id] = 0;
           console.log("Add outlet", outlet.outlet_id);
 
           client.execute(GET_SETTINGS_START + outlet.outlet_id + GET_SETTINGS_END).then(res => {
@@ -91,14 +93,16 @@ wsFromClients.on('connection', ws => {
           client.execute(INSERT_DATA_CQL, [outlet.outlet_id, date_str, date, outlet.data[i].sensor_type, outlet.data[i].value], {prepare: true}).then(res => {
             ws.send(JSON.stringify({res : "OK"}));
           });
-
+          let lastAlert = alertTime[outlet.outlet_id];
           let value = Math.abs(outlet.data[i].value);
           let alerts = wsClients[outlet.outlet_id].alerts;
-
-          if(alerts && (value < alerts.low || value > alerts.high)) {
+          let timeSinceLast = outlet.timestamp*1000 - lastAlert;
+          if(alerts && (value < alerts.low || value > alerts.high) && timeSinceLast > 120*1000) {
+            alertTime[outlet.outlet_id] = outlet.timestamp*1000;
             client.execute(SELECT_MAIL_BEGIN + outlet.outlet_id + SELECT_MAIL_END).then((res) => {
               if(res.rows.length > 0){
                 let destination = res.rows[0].email;
+                console.log("Sending mail to "+destination);
                 if(destination){
                   transporter.sendMail({
                     to: destination,
