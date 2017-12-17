@@ -1,0 +1,11 @@
+[Unit]
+Description=Sharelet Outlet Program
+After=wifi-connect.service
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=python /opt/sharelet/main.py
+
+[Install]
+WantedBy=multi-user.target

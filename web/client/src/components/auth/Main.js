@@ -6,7 +6,6 @@ import Paper from 'material-ui/Paper';
 import withRoot from '../withRoot';
 import Header from './Header';
 import Footer from './Footer';
-import Alert from '../Alert';
 
 const styles = theme => ({
   '@global': {
@@ -45,7 +44,7 @@ const styles = theme => ({
   }
 });
 
-const Main = ({ children, classes, errorMessage, infoMessage, type }) => (
+const Main = ({ children, classes, type }) => (
   <div className={classes.root}>
     <Header type={type} />
     <div className={classes.center}>
@@ -56,16 +55,11 @@ const Main = ({ children, classes, errorMessage, infoMessage, type }) => (
         <Footer className={classes.footer} type={type} />
       </div>
     </div>
-
-    {infoMessage && <Alert text={infoMessage} type="info" />}
-    {errorMessage && <Alert text={errorMessage} type="warning" />}
   </div>
 );
 
 Main.propTypes = {
-  classes: PropTypes.object.isRequired,
-  errorMessage: PropTypes.string,
-  infoMessage: PropTypes.string
+  classes: PropTypes.object.isRequired
 };
 
 export default withRoot(withStyles(styles)(Main));

@@ -62,10 +62,8 @@ class User {
 
             const ADD_USER_CQL = "UPDATE users SET firstname = ?, lastname = ? WHERE userid = "+this.userid;
             client.execute(ADD_USER_CQL, [this.firstname, this.lastname], { prepare: true }, (error, results) => {
-                if (error){
-                    console.log(error, results);
+                if (error)
                     return next(error);
-                }
 
                 next(null);
             });
