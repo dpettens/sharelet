@@ -1,0 +1,13 @@
+[Unit]
+Description=Sharelet Outlet Program
+After=wifi-connect.service
+Wants=wifi-connect.service
+
+[Service]
+Type=idle
+Restart=on-failure
+ExecStart=/usr/bin/python /opt/sharelet/main.py
+EnvironmentFile=/etc/sharelet/environment
+
+[Install]
+WantedBy=multi-user.target
