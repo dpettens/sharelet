@@ -1,58 +1,38 @@
-float zero_senseur; 
-int PIN_ACS712 = A0;
-int count = 0;
-unsigned long last_send;
+#include "ACS712.h"
 
-// Obtient la valeur du senseur de courant ACS712
-//
-// Effectue plusieurs lecture et calcule la moyenne pour pondérer
-// la valeur obtenue.
-float valeurACS712( int pin ){
-  int valeur;
-  float moyenne = 0;
-  
-  int nbr_lectures = 50;
-  for( int i = 0; i < nbr_lectures; i++ ){
-      valeur = analogRead( pin );
-      moyenne = moyenne + float(valeur);
-  }
-  moyenne = moyenne / float(nbr_lectures);
-  return moyenne;
+
+/*
+  This example shows how to measure the power consumption
+  of devices in 230V electrical system
+  or any other system with alternative current
+*/
+
+// We have 30 amps version sensor connected to A0 pin of arduino
+// Replace with your version if necessary
+ACS712 sensor(ACS712_30A, A0);
+
+void setup() {
+  Serial.begin(9600);
+
+  // This method calibrates zero point of sensor,
+  // It is not necessary, but may positively affect the accuracy
+  // Ensure that no current flows through the sensor at this moment
+  sensor.calibrate();
 }
 
-void setup(){
-  // calibration du senseur  (SANS COURANT)
-  zero_senseur = valeurACS712( PIN_ACS712 );
-  last_send = millis();
-  Serial.begin( 9600 );
-}
+void loop() {
+  // We use 230V because it is the common standard in European countries
+  // Change to your local, if necessary
+  float U = 230;
 
-float courant; 
-float courant_efficace;     
-float tension_efficace = 230; // tension efficace du réseau electrique
-float puissance_efficace; 
-float ACS712_RAPPORT = 66; // nbr de millivolts par ampère
+  // To measure current we need to know the frequency of current
+  // By default 50Hz is used, but you can specify own, if necessary
+  float I = sensor.getCurrentAC();
 
-void loop(){
-  float valeur_senseur = valeurACS712( PIN_ACS712 );
-  // L'amplitude en courant est ici retournée en mA
-  // plus confortable pour les calculs
-  courant = (float)(valeur_senseur-zero_senseur)/1024*5/ACS712_RAPPORT*100000;
-  // Courant efficace en mA
-  courant_efficace = courant / 1.414; // divisé par racine de 2
+  // To calculate the power we need voltage multiplied by current
+  float P = U * I;
 
-  // Calcul de la puissance.
-  //    On divise par 1000 pour transformer les mA en Ampère
-  puissance_efficace += (courant_efficace * tension_efficace/1000);
-  count++;
+  Serial.println(P);
 
-  if(last_send + 20000 < millis()){
-    float p = puissance_efficace / count;
-    Serial.println(p);
-    puissance_efficace = 0;
-    count = 0;
-    last_send = millis();
-  }
-  
-  delay( 1000 ); // attendre une seconde 
+  delay(1000);
 }
