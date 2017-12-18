@@ -490,27 +490,24 @@ exports.sendCmd = (req, res, next) => {
         if(user.outlets.indexOf(req.params.id) > -1)
         {
             wsApi.getInstance((err, connexion) => {
-                if (err){
-                    console.log("ERRRR", err);
+                if(err)
                     return next({
                         status: 500,
                         message: 'Send command failed. Error with the websocket.',
                         log: err
                     });
-                }
 
                 req.body.type = 0;
                 req.body.target = req.params.id;
                 connexion.send(JSON.stringify(req.body));
+
                 connexion.on('message', message => {
-                  console.log(message);
-                  let json = JSON.parse(message);
-                  console.log(json);
-                  if(json.ok){
+                  const json = JSON.parse(message);
+
+                  if(json.ok)
                     return res.status(200).end();
-                  }else{
+                  else
                     return res.status(400).end();
-                  }
                 });
             });
         }
