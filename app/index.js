@@ -11,6 +11,7 @@ const nodemailer = require('nodemailer');
 const ws = require('ws');
 
 const config = require('./config');
+const debug = process.env.NODE_ENV === 'development';
 
 /*
  * Cassandra config
@@ -37,6 +38,7 @@ const UPDATE_STATE_MIDDLE = " WHERE outlet_id = '";
 const UPDATE_STATE_END = "'";
 const SELECT_MAIL_BEGIN = "SELECT email FROM users WHERE outlets CONTAINS '";
 const SELECT_MAIL_END = "' ALLOW FILTERING";
+
 /*
  * Nodemailer config
  */
@@ -65,7 +67,6 @@ let alertTime = {};
 
 wsFromClients.on('connection', ws => {
   ws.on('message', message => {
-    console.log(message);
     try {
       const outlet = JSON.parse(message);
 
@@ -78,7 +79,9 @@ wsFromClients.on('connection', ws => {
         if(!wsClients.hasOwnProperty(outlet.outlet_id) || wsClients[outlet.outlet_id] != ws) {
           wsClients[outlet.outlet_id] = ws;
           alertTime[outlet.outlet_id] = 0;
-          console.log("Add outlet", outlet.outlet_id);
+
+          if(debug)
+            console.log("New outlet", outlet.outlet_id);
 
           client.execute(GET_SETTINGS_START + outlet.outlet_id + GET_SETTINGS_END).then(res => {
             if(res.rows.length !== 0)
@@ -89,28 +92,35 @@ wsFromClients.on('connection', ws => {
         const date = new Date(outlet.timestamp * 1000);
         const date_str = date.getDate() + '-' + date.getMonth() + '-' + date.getFullYear();
 
+        if(debug)
+          console.log("Data of the outlet", outlet);
+
         for(let i in outlet.data) {
           client.execute(INSERT_DATA_CQL, [outlet.outlet_id, date_str, date, outlet.data[i].sensor_type, outlet.data[i].value], {prepare: true}).then(res => {
             ws.send(JSON.stringify({res : "OK"}));
           });
-          let lastAlert = alertTime[outlet.outlet_id];
-          let value = Math.abs(outlet.data[i].value);
-          let alerts = wsClients[outlet.outlet_id].alerts;
-          let timeSinceLast = outlet.timestamp*1000 - lastAlert;
+
+          const lastAlert = alertTime[outlet.outlet_id];
+          const value = Math.abs(outlet.data[i].value);
+          const alerts = wsClients[outlet.outlet_id].alerts;
+          const timeSinceLast = outlet.timestamp*1000 - lastAlert;
+
           if(alerts && (value < alerts.low || value > alerts.high) && timeSinceLast > 120*1000) {
             alertTime[outlet.outlet_id] = outlet.timestamp*1000;
-            client.execute(SELECT_MAIL_BEGIN + outlet.outlet_id + SELECT_MAIL_END).then((res) => {
-              if(res.rows.length > 0){
-                let destination = res.rows[0].email;
-                console.log("Sending mail to "+destination);
-                if(destination){
+            client.execute(SELECT_MAIL_BEGIN + outlet.outlet_id + SELECT_MAIL_END).then(res => {
+              if(res.rows.length > 0) {
+                const destination = res.rows[0].email;
+
+                if(destination) {
                   transporter.sendMail({
                     to: destination,
-                    text: "Alert on "+outlet.outlet_id+" value " + value
-                  }, error => {
-                    if(error){
+                    text: "Alert on " + outlet.outlet_id + " value " + value
+                  }, (error, info) => {
+                    if(error)
                       console.log("Sending mail error", error.message);
-                    }
+
+                    if(debug)
+                      console.log("Message sent:", info.messageId);
                   });
                 }
               }
@@ -143,8 +153,14 @@ wsFromAPI.on('connection', ws => {
         });
 
         ws.send(JSON.stringify({"type" : 4, "ok" : true, "target" : data.target}));
+
+        if(debug)
+          console.log("Change state of the outlet %s requested and successful", data.target);
       } else {
         ws.send(JSON.stringify({"type" : 4, "ok" : false, "target" : data.target}));
+
+        if(debug)
+          console.log("Change state of the outlet %s requested but the outlet is down", data.target);
       }
     } catch(e) {
       console.log("ws API JSON : " ,e);
