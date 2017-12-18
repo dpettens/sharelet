@@ -1,12 +1,40 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { addOutlet } from '../actions';
+import { addOutlet, getOutlets, updateUser } from '../actions';
 import Main from '../components/dashboard/Main';
 
 class Dashboard extends Component {
-  handleAddOutlet = (values) => {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      intervalId: null
+    };
+  };
+
+  componentDidMount = () => {
+    this.props.getOutlets();
+
+    // const intervalId = setInterval(() => {
+    //   this.props.getOutlets();
+    // }, 10*1000);
+
+    // this.setState({
+    //   intervalId: intervalId
+    // });
+  };
+
+  componentWillUnmount = () => {
+    //clearInterval(this.state.intervalId);
+  };
+
+  handleAddOutlet = values => {
     this.props.addOutlet(values);
+  };
+
+  handleUpdateUser = values => {
+    this.props.updateUser(values);
   };
 
   render = () => {
@@ -16,6 +44,7 @@ class Dashboard extends Component {
       <Main
         firstname={firstname}
         handleAddOutlet={this.handleAddOutlet}
+        handleUpdateUser={this.handleUpdateUser}
         lastname={lastname}
         outlets={outlets}
       />
@@ -26,8 +55,10 @@ class Dashboard extends Component {
 Dashboard.PropTypes = {
   addOutlet: PropTypes.func.isRequired,
   firstname: PropTypes.string.isRequired,
+  getOutlets: PropTypes.func.isRequired,
   lastname: PropTypes.string.isRequired,
-  outlets: PropTypes.object.isRequired
+  outlets: PropTypes.object.isRequired,
+  updateUser: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
@@ -38,8 +69,14 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => {
   return {
-    addOutlet: (values) => {
+    addOutlet: values => {
       dispatch(addOutlet(values))
+    },
+    getOutlets: () => {
+      dispatch(getOutlets())
+    },
+    updateUser: values => {
+      dispatch(updateUser(values))
     }
   }
 };

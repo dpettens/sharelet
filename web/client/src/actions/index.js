@@ -21,11 +21,13 @@ export const SIGN_IN_SUCCESS             = 'SIGN_IN_SUCCESS';
 export const SIGN_OUT_SUCCESS            = 'SIGN_OUT_SUCCESS';
 
 export const GET_USER_SUCCESS            = 'GET_USER_SUCCESS';
+export const UPDATE_USER_SUCCESS         = 'UPDATE_USER_SUCCESS';
 
 export const ADD_OUTLET_SUCCESS          = 'ADD_OUTLET_SUCCESS';
 export const CHANGE_STATE_OUTLET_SUCCESS = 'CHANGE_STATE_OUTLET_SUCCESS';
 export const DELETE_OUTLET_SUCCESS       = 'DELETE_OUTLET_SUCCESS';
 export const UPDATE_OUTLET_SUCCESS       = 'UPDATE_OUTLET_SUCCESS';
+export const GET_DATA_OUTLET_SUCCESS     = 'GET_DATA_OUTLET_SUCCESS';
 export const GET_OUTLETS_SUCCESS         = 'GET_OUTLETS_SUCCESS';
 
 /*
@@ -75,13 +77,9 @@ export const signIn = (user, history) => {
 
         // Get user account informations
         dispatch(getUser()).then(() => {
-          // Get outlets
-          dispatch(getOutlets()).then(() => {
-            // Redirect to Dashboard
-            dispatch(signInSuccess());
-            dispatch(alertMessageInfo(`Bonjour, ${user.email} :)`));
-            history.push('/dashboard');
-          });
+          dispatch(signInSuccess());
+          dispatch(alertMessageInfo(`Bonjour, ${user.email} :)`));
+          history.push('/dashboard');
         });
       })
       .catch(error => {
@@ -162,13 +160,38 @@ export const getUser = () => {
   return dispatch => {
     return httpClient.get('/users', httpClientConfig)
       .then(response => {
-        dispatch(getUserSuccess(response.data));
+        dispatch(getUserSuccess({
+          email: response.data.email,
+          firstname: response.data.firstname,
+          lastname: response.data.lastname
+        }));
       })
       .catch(error => {
         if(error.response.data.message)
           dispatch(alertMessageError(error.response.data.message));
         else
           dispatch(alertMessageError('Une erreur est survenue lors de la récupération de l\'utilisateur !'));
+      });
+  };
+};
+
+// Update user informations
+export const updateUserSuccess = user => ({
+  type: UPDATE_USER_SUCCESS,
+  payload: user
+});
+
+export const updateUser = user => {
+  return dispatch => {
+    return httpClient.put('/users', user ,httpClientConfig)
+      .then(response => {
+        dispatch(updateUserSuccess(user));
+      })
+      .catch(error => {
+        if(error.response.data.message)
+          dispatch(alertMessageError(error.response.data.message));
+        else
+          dispatch(alertMessageError('Une erreur est survenue lors de la mise à jour de l\'utilisateur !'));
       });
   };
 };
@@ -194,6 +217,28 @@ export const getOutlets = () => {
           dispatch(alertMessageError(error.response.data.message));
         else
           dispatch(alertMessageError('Une erreur est survenue lors de la récupération des prises !'));
+      });
+  };
+};
+
+// Get data of an outlet
+export const getDataOutletSuccess = data => ({
+  type: GET_DATA_OUTLET_SUCCESS,
+  payload: data
+});
+
+export const getDataOutlet = request => {
+  return dispatch => {
+    return httpClient.get(`/outlets/${request.id}/data/${request.date}`, httpClientConfig)
+      .then(response => {
+        //console.log(response.data);
+        dispatch(getDataOutletSuccess(response.data));
+      })
+      .catch(error => {
+        if(error.response.data.message)
+          dispatch(alertMessageError(error.response.data.message));
+        else
+          dispatch(alertMessageError(`Une erreur est survenue lors de la récupération des données de la prise ${request.id} !`));
       });
   };
 };
