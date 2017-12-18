@@ -1,79 +1,115 @@
 const WebSocket = require('ws');
 const chalk = require('chalk');
 
-let outlet_emu = {
-  relais: true
-}
+/*
+ * Config of the emulator
+ */
 
 let timer = null;
 let ws = null;
-let val = 0;
-let low = 30;
-let high = 70;
-let probaAlert = 30;
-let isAlert = false;
 
-function getData(){
-  isAlert = Math.random()*100 < probaAlert;
-  if(outlet_emu.relais){
-    if(!isAlert)
+/*
+ * Config of the outlet
+ */
+
+let outlet_emu = {
+  id: '',
+  isAlert: false,
+  password: '',
+  relais: true,
+  value: 0
+};
+
+/*
+ * Config of the alert system
+ */
+
+const low = 30;
+const high = 70;
+const probaAlert = 30;
+
+const getData = () => {
+  outlet_emu.isAlert = Math.random()*100 < probaAlert;
+
+  if(outlet_emu.relais) {
+    if(outlet_emu.isAlert)
       return Math.random()*(high - low) + low;
     else
       return Math.random()*low;
   }
-  return 0;
-}
 
-function updateMsg(){
+  return 0;
+};
+
+const updateMsg = () => {
   process.stderr.clearLine();
   process.stderr.cursorTo(0);
-  process.stderr.write("Etat circuit : "+(outlet_emu.relais?chalk.green("ON"):chalk.red("OFF"))+". Mesure Puissance Watt : "+val.toFixed(2)+". En alerte : "+(!isAlert?chalk.green("NON"):chalk.red("OUI")));
-}
+  process.stderr.write(
+    `État du circuit : ${(outlet_emu.relais) ? chalk.green("ON") : chalk.red("OFF")}. \
+    Mesure Puissance Watt : ${outlet_emu.value.toFixed(2)}. \
+    En alerte : ${(!outlet_emu.isAlert) ? chalk.green("NON") : chalk.red("OUI")}`
+  );
+};
 
-function onMessage(message){
-  try{
-    var json = JSON.parse(message);
-    if(json.type == 0){
-      outlet_emu.relais = json.closed;
-      if(json.closed){
+const onMessage = message => {
+  try {
+    const json = JSON.parse(message);
+
+    if(json.type === 0) {
+      outlet_emu.relais = json.close;
+
+      if(json.close)
         updateMsg();
-//        console.log("Relais fermé, circuit ON", message);
-      }else{
+      else
         updateMsg();
-//        console.log("Relais ouvert, circuit OFF", message);
-      }
-    }else{
-    }
-  }catch(e){
+    }
+  } catch(e) {
+    console.log(e.message);
+    process.exit(-1);
   }
-}
+};
 
-function setupDataInverval(){
+const setupDataInverval = () => {
   console.log("BOOT DONE");
+
   timer = setInterval(() => {
-    let now = new Date();
-    let timestamp = now.getTime()/1000;
-    val = getData();
+    const now = new Date();
+    const timestamp = now.getTime() / 1000;
+    outlet_emu.value = getData();
+
     updateMsg();
+
     let data = {
       "type" : 1,
-      "outlet_id" : "simu",
-      "pwd" : "ZohE0mKWqHY6wBubVbtW4YeXt4135YAjmfDzUExJTVI=",
+      "outlet_id" : outlet_emu.id,
+      "pwd" : outlet_emu.password,
       "timestamp" : timestamp,
       "data" : [
-        {"sensor_type" : 0, "value" : val}
+        {
+          "sensor_type" : 0,
+          "value" : outlet_emu.value
+        }
       ]
     }
-    
-    ws.send(JSON.stringify(data));    
+
+    ws.send(JSON.stringify(data));
   }, 10*1000);
-}
+};
 
-function boot(){
-  ws = new WebSocket("ws://sharelet.be:3000/");
+const boot = (appEndpoint, id, password) => {
+  outlet_emu.id = id;
+  outlet_emu.password = password;
+
+  ws = new WebSocket(appEndpoint);
   ws.on('open', setupDataInverval);
-  ws.on('message', onMessage); 
+  ws.on('message', onMessage);
+};
+
+if(process.argv.length !== 5) {
+  console.log("You must enter the appEndpoint, the id and the password !");
+  process.exit(-1);
+} else {
+  console.log("BOOT...");
+  boot(process.argv[2], process.argv[3], process.argv[4]);
 }
 
-console.log("BOOT...");
-boot();

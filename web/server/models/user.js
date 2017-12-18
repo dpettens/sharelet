@@ -62,10 +62,8 @@ class User {
 
             const ADD_USER_CQL = "UPDATE users SET firstname = ?, lastname = ? WHERE userid = "+this.userid;
             client.execute(ADD_USER_CQL, [this.firstname, this.lastname], { prepare: true }, (error, results) => {
-                if (error){
-                    console.log(error, results);
+                if (error)
                     return next(error);
-                }
 
                 next(null);
             });
@@ -92,7 +90,7 @@ class User {
             if (error)
                 return next(error);
 
-            const DELETE_OUTLET_CQL = "UPDATE users SET outlets = outlets - '" + outlet_id + "' WHERE userid = '" + this.userid + "'";
+            const DELETE_OUTLET_CQL = "UPDATE users SET outlets = outlets - {'" + outlet_id + "'} WHERE userid = " + this.userid;
             client.execute(DELETE_OUTLET_CQL, (error, results) => {
                 if (error)
                     return next(error);

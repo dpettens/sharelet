@@ -1,13 +1,15 @@
-import { createStore, applyMiddleware, compose } from 'redux';
+import { applyMiddleware, compose, createStore } from 'redux';
 import thunk from 'redux-thunk';
-import { persistState } from 'redux-devtools';
+import persistState from 'redux-localstorage';
+import { persistState as  persistStateDevTools } from 'redux-devtools';
 import rootReducer from '../reducers';
 import DevTools from '../containers/DevTools';
 
 const enhancer = compose(
     applyMiddleware(thunk),
+    persistState(),
     DevTools.instrument(),
-    persistState(
+    persistStateDevTools(
         window.location.href.match(
             /[?&]debug_session=([^&#]+)\b/
         )

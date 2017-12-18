@@ -20,6 +20,7 @@ export default (ComposedComponent) => {
   }
 
   NotAuthentication.PropTypes = {
+    authenticated : PropTypes.bool.isRequired,
     history: PropTypes.object,
   };
 

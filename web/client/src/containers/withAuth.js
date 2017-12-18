@@ -20,7 +20,8 @@ export default (ComposedComponent) => {
   }
 
   Authentication.PropTypes = {
-    history: PropTypes.object,
+    authenticated : PropTypes.bool.isRequired,
+    history: PropTypes.object.isRequired,
   };
 
   const mapStateToProps = state => ({

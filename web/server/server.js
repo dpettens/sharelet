@@ -26,6 +26,9 @@ let app = express();
  * Use bodyParser middelware to get the data from a POST/PUT.
  */
 
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 app.use(bodyParser.json());
 
 /*

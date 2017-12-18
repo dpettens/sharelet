@@ -1,0 +1,57 @@
+/* Required to be able to customize the styles of components
+ * created by react-drag-sortable that we don't have access
+ * directly or by className prop
+ */
+
+.grid {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 12px;
+}
+
+.clearfix:after {
+	content: "";
+  	display: table;
+  	clear: both;
+}
+
+.List {
+    width: 100%;
+}
+
+.draggable {
+    box-sizing: border-box;
+    width: calc(100% - 24px);
+    margin: 12px;
+}
+
+.draggable.placeholder {
+    display: flex;
+    flex: '1 1 auto';
+    justify-content: center;
+    align-items: center;
+    background-color: red;
+    color: white;
+    font-size: 1.4em;
+    font-style: italic;
+    opacity: 0.4;
+}
+
+@media screen and (min-width: 640px) {
+    .draggable {
+        width: calc(100%/2 - 24px);
+    }
+}
+
+@media screen and (min-width: 1080px) {
+    .draggable {
+        width: calc(100%/3 - 24px);
+    }
+}
+
+@media screen and (min-width: 1920px) {
+    .grid {
+        width: 1800px;
+        margin: 12px auto;
+    }
+}
