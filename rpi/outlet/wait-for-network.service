@@ -1,0 +1,11 @@
+[Unit]
+Description=Ping the sharelet server until it becomes reachable
+
+[Service]
+Type=oneshot
+Restart=on-failure
+ExecStart=/bin/bash -c 'while ! ping -c1 sharelet.be; do sleep 1; done'
+TimeoutStartSec=60s
+
+[Install]
+WantedBy=multi-user.target

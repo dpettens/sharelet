@@ -6,6 +6,7 @@ Wants=wifi-connect.service
 [Service]
 Type=idle
 Restart=on-failure
+ExecStartPre=/bin/sleep 10
 ExecStart=/usr/bin/python /opt/sharelet/main.py
 EnvironmentFile=/etc/sharelet/environment
 
