@@ -16,7 +16,6 @@ class Outlet extends Component {
   componentDidMount = () => {
     const currentDay =  new Date().toISOString().substring(0, 10);
     const request = {id: this.props.id, date: currentDay};
-    this.props.getDataOutlet(request);
   };
 
   handleChangeStateOutlet = () => {
@@ -27,12 +26,18 @@ class Outlet extends Component {
     this.props.deleteOutlet(this.props.id);
   };
 
+  handleDataRequest = () => {
+    let date = new Date();
+    let format = date.getDate() + "-" + date.getMonth() + "-" + date.getFullYear();
+    this.props.getDataOutlet({id : this.props.id, date : format});
+  }
+
   handleUpdateOutlet = value => {
     this.props.updateOutlet({id: this.props.id, alias: value.alias});
   };
 
   render = () => {
-    const { alias, id, state } = this.props;
+    const { alias, id, state, data } = this.props;
 
     return(
       <OutletCard
@@ -40,8 +45,10 @@ class Outlet extends Component {
         handleChangeStateOutlet={this.handleChangeStateOutlet}
         handleDeleteOutlet={this.handleDeleteOutlet}
         handleUpdateOutlet={this.handleUpdateOutlet}
+        handleDataRequest={this.handleDataRequest}
         id={id}
         state={state}
+        data={data}
       />
     );
   };
@@ -61,6 +68,7 @@ const mapStateToProps = (state, ownProps) => ({
   alias: state.outlets[ownProps.id].alias,
   id: ownProps.id,
   state: state.outlets[ownProps.id].state,
+  data: state.outlets[ownProps.id].data,
 });
 
 const mapDispatchToProps = dispatch => ({

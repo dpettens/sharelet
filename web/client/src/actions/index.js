@@ -222,17 +222,17 @@ export const getOutlets = () => {
 };
 
 // Get data of an outlet
-export const getDataOutletSuccess = data => ({
+export const getDataOutletSuccess = (id, data) => ({
   type: GET_DATA_OUTLET_SUCCESS,
-  payload: data
+  payload: data,
+  id : id
 });
 
 export const getDataOutlet = request => {
   return dispatch => {
     return httpClient.get(`/outlets/${request.id}/data/${request.date}`, httpClientConfig)
       .then(response => {
-        //console.log(response.data);
-        dispatch(getDataOutletSuccess(response.data));
+        dispatch(getDataOutletSuccess(request.id ,response.data));
       })
       .catch(error => {
         if(error.response.data.message)

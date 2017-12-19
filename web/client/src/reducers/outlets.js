@@ -4,7 +4,8 @@ import {
   UPDATE_OUTLET_SUCCESS,
   GET_OUTLETS_SUCCESS,
   DELETE_OUTLET_SUCCESS,
-  CHANGE_STATE_OUTLET_SUCCESS
+  CHANGE_STATE_OUTLET_SUCCESS,
+  GET_DATA_OUTLET_SUCCESS
 } from '../actions';
 
 const toAssociative = outlets => {
@@ -14,7 +15,8 @@ const toAssociative = outlets => {
     associative[outlet.id] = {
       id: outlet.id,
       alias: outlet.alias,
-      state: outlet.state
+      state: outlet.state,
+      data: []
     };
   });
 
@@ -41,13 +43,18 @@ const outlets = (state = [], action) => {
         [action.payload]: {
           id: action.payload,
           alias: undefined,
-          state: false
+          state: false,
+          data: []
         }
       };
     case CHANGE_STATE_OUTLET_SUCCESS: {
       const clone = {...state};
       clone[action.payload].state = !clone[action.payload].state;
       return clone;
+    }
+    case GET_DATA_OUTLET_SUCCESS: {
+      const clone = {...state};
+      clone[action.id].data = action.payload;
     }
     case DELETE_OUTLET_SUCCESS: {
       const clone = {...state};
